@@ -14,15 +14,35 @@ public class PropriedadeController {
     @Autowired
     private PropriedadeRepository repository;
 
-    // cadastrar propriedade
     @PostMapping
     public Propriedade cadastrar(@RequestBody Propriedade propriedade) {
         return repository.save(propriedade);
     }
 
-    // listar propriedades
     @GetMapping
     public List<Propriedade> listar() {
         return repository.findAll();
+    }
+
+    // Editar Propriedade
+    @PutMapping("/{id}")
+    public Propriedade editar(@PathVariable Long id, @RequestBody Propriedade novaPropriedade) {
+        return repository.findById(id)
+                .map(propriedade -> {
+                    propriedade.setNome(novaPropriedade.getNome());
+                    propriedade.setLocalizacao(novaPropriedade.getLocalizacao());
+                    propriedade.setTamanho(novaPropriedade.getTamanho());
+                    propriedade.setUsuario(novaPropriedade.getUsuario());
+                    return repository.save(propriedade);
+                }).orElseGet(() -> {
+                    novaPropriedade.setId(id);
+                    return repository.save(novaPropriedade);
+                });
+    }
+
+    // Excluir Propriedade
+    @DeleteMapping("/{id}")
+    public void excluir(@PathVariable Long id) {
+        repository.deleteById(id);
     }
 }
