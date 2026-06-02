@@ -17,7 +17,7 @@
         .logo-circle {
             width: 48px;
             height: 48px;
-            background-color: #198754; /* Verde do Bootstrap */
+            background-color: #198754;
             color: white;
             display: flex;
             align-items: center;
@@ -40,16 +40,20 @@
     <h1 class="h3 mb-1 fw-bold text-dark">AgroGestão</h1>
     <p class="text-muted small mb-4">Gerencie suas propriedades rurais de forma simples</p>
 
+    <div th:if="${erro}" class="alert alert-danger py-2 small border-0 text-center mb-3" role="alert">
+        <span th:text="${erro}">Erro ao logar</span>
+    </div>
+
     <form th:action="@{/login}" method="POST" class="text-start">
 
         <div class="mb-3">
-            <label for="username" class="form-label small fw-medium text-secondary">Telefone</label>
-            <input type="text" id="username" name="username" class="form-control" placeholder="(11) 99999-9999" required>
+            <label for="telefoneInput" class="form-label small fw-medium text-secondary">Telefone</label>
+            <input type="text" id="telefoneInput" name="telefone" class="form-control" placeholder="83991360945" required>
         </div>
 
         <div class="mb-3">
-            <label for="password" class="form-label small fw-medium text-secondary">Senha</label>
-            <input type="password" id="password" name="password" class="form-control" placeholder="••••••" required>
+            <label for="senhaInput" class="form-label small fw-medium text-secondary">Senha</label>
+            <input type="password" id="senhaInput" name="senha" class="form-control" placeholder="••••••" required>
         </div>
 
         <div class="mb-3 form-check">
@@ -63,7 +67,7 @@
     </form>
 
     <div class="mt-4 small text-muted">
-        <p class="mb-1 text-black-50">Use provisório: (11) 99999-9999 / 123456</p>
+        <p class="mb-1 text-black-50">Acesso padrão: 83991360945 / agro123</p>
         <p class="mb-0 text-secondary">Não tem uma conta? <a th:href="@{/usuarios/cadastro}" class="text-success fw-medium text-decoration-none">Criar Conta</a></p>
     </div>
 

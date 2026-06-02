@@ -3,46 +3,57 @@ package com.example.AgroGestao.controller;
 import com.example.AgroGestao.model.Propriedade;
 import com.example.AgroGestao.repository.PropriedadeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/propriedades")
+@Controller
+@RequestMapping("/propriedades-view")
 public class PropriedadeController {
 
     @Autowired
-    private PropriedadeRepository repository;
+    private PropriedadeRepository propriedadeRepository;
 
-    @PostMapping
-    public Propriedade cadastrar(@RequestBody Propriedade propriedade) {
-        return repository.save(propriedade);
-    }
-
+    // Exibe a tela de listagem de propriedades
     @GetMapping
-    public List<Propriedade> listar() {
-        return repository.findAll();
+    public String exibirPropriedades(Model model) {
+        model.addAttribute("propriedades", propriedadeRepository.findAll());
+
+        // Se nao estiver editando, envia um objeto vazio para o form
+        if (!model.containsAttribute("novaPropriedade")) {
+            model.addAttribute("novaPropriedade", new Propriedade());
+        }
+        return "propriedades";
     }
 
-    // Editar Propriedade
-    @PutMapping("/{id}")
-    public Propriedade editar(@PathVariable Long id, @RequestBody Propriedade novaPropriedade) {
-        return repository.findById(id)
-                .map(propriedade -> {
-                    propriedade.setNome(novaPropriedade.getNome());
-                    propriedade.setLocalizacao(novaPropriedade.getLocalizacao());
-                    propriedade.setTamanho(novaPropriedade.getTamanho());
-                    propriedade.setUsuario(novaPropriedade.getUsuario());
-                    return repository.save(propriedade);
-                }).orElseGet(() -> {
-                    novaPropriedade.setId(id);
-                    return repository.save(novaPropriedade);
-                });
+    // Salva uma nova fazenda ou atualiza uma existente
+    @PostMapping("/salvar")
+    public String salvarNovaPropriedade(@ModelAttribute Propriedade propriedade) {
+        propriedadeRepository.save(propriedade);
+        return "redirect:/propriedades-view";
     }
 
-    // Excluir Propriedade
-    @DeleteMapping("/{id}")
-    public void excluir(@PathVariable Long id) {
-        repository.deleteById(id);
+    // Busca a propriedade e joga de volta no form da esquerda para editar
+    @GetMapping("/editar/{id}")
+    public String editarPropriedade(@PathVariable Long id, Model model) {
+        Propriedade propriedade = propriedadeRepository.findById(id).orElse(null);
+        if (propriedade != null) {
+            model.addAttribute("novaPropriedade", propriedade); // Preenche o form
+            model.addAttribute("propriedades", propriedadeRepository.findAll()); // Mantem a lista da direita
+            return "propriedades";
+        }
+        return "redirect:/propriedades-view";
+    }
+
+    // Remove a fazenda do banco usando o ID
+    @GetMapping("/excluir/{id}")
+    public String excluirPropriedade(@PathVariable Long id) {
+        try {
+            propriedadeRepository.deleteById(id);
+        } catch (Exception e) {
+            // Caso tenha atividades vinculadas, retorna com aviso de erro na URL
+            return "redirect:/propriedades-view?erroExclusao";
+        }
+        return "redirect:/propriedades-view";
     }
 }

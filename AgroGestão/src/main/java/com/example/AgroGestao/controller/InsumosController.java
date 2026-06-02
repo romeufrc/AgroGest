@@ -3,32 +3,52 @@ package com.example.AgroGestao.controller;
 import com.example.AgroGestao.model.Insumos;
 import com.example.AgroGestao.repository.InsumosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/insumos")
+@Controller
+@RequestMapping("/insumos-view")
 public class InsumosController {
 
     @Autowired
-    private InsumosRepository repository;
+    private InsumosRepository insumosRepository;
 
-    // Cadastrar insumo (RF04)
-    @PostMapping
-    public Insumos cadastrar(@RequestBody Insumos insumo) {
-        return repository.save(insumo);
-    }
-
-    // Listar insumos disponíveis
+    // Exibe a tela com a lista de insumos no estoque
     @GetMapping
-    public List<Insumos> listar() {
-        return repository.findAll();
+    public String exibirInsumos(Model model) {
+        model.addAttribute("insumos", insumosRepository.findAll());
+
+        // Se nao estiver editando, envia um objeto novo para o form
+        if (!model.containsAttribute("novoInsumo")) {
+            model.addAttribute("novoInsumo", new Insumos());
+        }
+        return "insumos";
     }
 
-    // Remover insumo do estoque (RF11)
-    @DeleteMapping("/{id}")
-    public void excluir(@PathVariable Long id) {
-        repository.deleteById(id);
+    // Salva um novo insumo ou atualiza um existente
+    @PostMapping("/salvar")
+    public String salvarInsumo(@ModelAttribute Insumos insumo) {
+        insumosRepository.save(insumo);
+        return "redirect:/insumos-view";
+    }
+
+    // Busca o insumo pelo ID e joga de volta no form para editar
+    @GetMapping("/editar/{id}")
+    public String editarInsumo(@PathVariable Long id, Model model) {
+        Insumos insumo = insumosRepository.findById(id).orElse(null);
+        if (insumo != null) {
+            model.addAttribute("novoInsumo", insumo); // Coloca os dados no form
+            model.addAttribute("insumos", insumosRepository.findAll()); // Mantem a tabela carregada
+            return "insumos";
+        }
+        return "redirect:/insumos-view";
+    }
+
+    // Exclui o insumo do estoque usando o ID
+    @GetMapping("/excluir/{id}")
+    public String excluirInsumo(@PathVariable Long id) {
+        insumosRepository.deleteById(id);
+        return "redirect:/insumos-view";
     }
 }

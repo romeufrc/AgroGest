@@ -1,55 +1,82 @@
 package com.example.AgroGestao.controller;
 
 import com.example.AgroGestao.model.Atividade;
+import com.example.AgroGestao.model.Insumos;
 import com.example.AgroGestao.repository.AtividadeRepository;
-import com.example.AgroGestao.service.AtividadeService;
+import com.example.AgroGestao.repository.InsumosRepository;
+import com.example.AgroGestao.repository.PropriedadeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/atividades")
+@Controller
+@RequestMapping("/atividades-view")
 public class AtividadeController {
 
     @Autowired
-    private AtividadeRepository repository;
+    private AtividadeRepository atividadeRepository;
 
     @Autowired
-    private AtividadeService service; // Injetando a nossa nova camada de serviço
+    private PropriedadeRepository propriedadeRepository;
 
-    // Cadastrar atividade com baixa automática no estoque (RF05 + Sprint 4)
-    @PostMapping
-    public Atividade cadastrar(@RequestBody Atividade atividade) {
-        return service.salvarEAtualizarEstoque(atividade);
-    }
+    @Autowired
+    private InsumosRepository insumosRepository;
 
-    // Listar atividades (RF09)
+    // Exibe o historico de operacoes e preenche os selects do form
     @GetMapping
-    public List<Atividade> listar() {
-        return repository.findAll();
+    public String exibirAtividades(Model model) {
+        model.addAttribute("atividades", atividadeRepository.findAll());
+        model.addAttribute("propriedades", propriedadeRepository.findAll());
+        model.addAttribute("insumos", insumosRepository.findAll()); // Lista os insumos no form
+
+        // Se nao estiver editando, envia uma atividade vazia
+        if (!model.containsAttribute("novaAtividade")) {
+            model.addAttribute("novaAtividade", new Atividade());
+        }
+        return "atividades";
     }
 
-    // Editar Atividade (RF10)
-    @PutMapping("/{id}")
-    public Atividade editar(@PathVariable Long id, @RequestBody Atividade novaAtividade) {
-        return repository.findById(id)
-                .map(atividade -> {
-                    atividade.setNome(novaAtividade.getNome());
-                    atividade.setDescricao(novaAtividade.getDescricao());
-                    atividade.setTipo(novaAtividade.getTipo());
-                    atividade.setData(novaAtividade.getData());
-                    atividade.setPropriedade(novaAtividade.getPropriedade());
-                    return repository.save(atividade);
-                }).orElseGet(() -> {
-                    novaAtividade.setId(id);
-                    return repository.save(novaAtividade);
-                });
+    // Salva a atividade e reduz a quantidade usada do estoque automaticamente
+    @PostMapping("/salvar")
+    public String salvarNovaAtividade(@ModelAttribute Atividade atividade,
+                                      @RequestParam(required = false) Long insumoId,
+                                      @RequestParam(defaultValue = "0") double quantidadeUsada) {
+
+        atividadeRepository.save(atividade); // Salva ou atualiza a atividade
+
+        // REGRA DE NEGOCIO: Da baixa automatica no estoque do insumo selecionado
+        if (insumoId != null && quantidadeUsada > 0) {
+            Insumos insumo = insumosRepository.findById(insumoId).orElse(null);
+            if (insumo != null) {
+                double estoqueAtual = insumo.getQuantidade();
+                if (estoqueAtual >= quantidadeUsada) {
+                    insumo.setQuantidade(estoqueAtual - quantidadeUsada);
+                    insumosRepository.save(insumo); // Salva o novo estoque reduzido
+                }
+            }
+        }
+        return "redirect:/atividades-view";
     }
 
-    // Excluir Atividade (RF12)
-    @DeleteMapping("/{id}")
-    public void excluir(@PathVariable Long id) {
-        repository.deleteById(id);
+    // Busca a atividade pelo ID e joga no form para editar
+    @GetMapping("/editar/{id}")
+    public String editarAtividade(@PathVariable Long id, Model model) {
+        Atividade atividade = atividadeRepository.findById(id).orElse(null);
+        if (atividade != null) {
+            model.addAttribute("novaAtividade", atividade); // Preenche o form
+            model.addAttribute("atividades", atividadeRepository.findAll()); // Mantem a lista carregada
+            model.addAttribute("propriedades", propriedadeRepository.findAll());
+            model.addAttribute("insumos", insumosRepository.findAll());
+            return "atividades";
+        }
+        return "redirect:/atividades-view";
+    }
+
+    // Remove uma atividade registrada incorretamente
+    @GetMapping("/excluir/{id}")
+    public String excluirAtividade(@PathVariable Long id) {
+        atividadeRepository.deleteById(id);
+        return "redirect:/atividades-view";
     }
 }

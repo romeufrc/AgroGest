@@ -47,10 +47,20 @@
     </style>
 </head>
 <body>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div th:replace="~{sidebar :: sidebar}"></div>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mt-3 mx-3 rounded-3">
-    <div class="container-fluid px-3">
+    <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
+
         <div class="d-flex align-items-center">
+            <button class="btn btn-link link-dark p-0 me-3 text-decoration-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarAgroGestor" aria-controls="sidebarAgroGestor">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
             <div class="navbar-logo me-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 12M12 3c4.97 0 9 4.03 9 9 0 2.12-.74 4.07-1.97 5.61L12 12" />
@@ -62,11 +72,28 @@
             </div>
         </div>
 
-        <a href="/login" class="text-muted text-decoration-none">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-            </svg>
-        </a>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-secondary text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                    <i class="bi bi-person-fill text-success fs-5"></i>
+                </div>
+                <span class="small fw-semibold text-dark d-none d-sm-inline">Perfil</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="dropdownUser">
+                <li>
+                    <a class="dropdown-item small d-flex align-items-center gap-2 py-2" href="/perfil">
+                        <i class="bi bi-person-gear text-secondary"></i> Minha Conta
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item small d-flex align-items-center gap-2 py-2 text-danger" href="/login">
+                        <i class="bi bi-box-arrow-right"></i> Sair do Sistema
+                    </a>
+                </li>
+            </ul>
+        </div>
+
     </div>
 </nav>
 
