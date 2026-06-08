@@ -27,7 +27,7 @@ public class SafraController {
         if (!model.containsAttribute("novaSafra")) {
             model.addAttribute("novaSafra", new Safra());
         }
-        return "safra"; // Aponta corretamente para o arquivo safra.html no singular
+        return "safra";
     }
 
     // Salva uma nova safra ou atualiza uma existente
@@ -44,11 +44,9 @@ public class SafraController {
         if (safra != null) {
             model.addAttribute("novaSafra", safra);
             model.addAttribute("safras", safraRepository.findAll());
-
-            // CORRIGIDO: Vinculado perfeitamente ao nome da variável declarada no topo (propriedadeRepository)
             model.addAttribute("propriedades", propriedadeRepository.findAll());
 
-            return "safra"; // Aponta corretamente para o arquivo safra.html no singular
+            return "safra";
         }
         return "redirect:/safras-view";
     }

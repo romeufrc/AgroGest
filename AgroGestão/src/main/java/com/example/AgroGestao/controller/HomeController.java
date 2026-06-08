@@ -54,14 +54,11 @@ public class HomeController {
             }
         }
 
-        // 3. Alimenta as variáveis do Thymeleaf na tela inicial (index.html)
         model.addAttribute("qtdPropriedades", qtdPropriedades);
         model.addAttribute("qtdAtividades", qtdAtividades);
         model.addAttribute("qtdInsumos", qtdInsumos);
         model.addAttribute("totalGasto", totalGasto);
         model.addAttribute("qtdSafras", qtdSafras);
-
-        // 4. Lista de histórico rápido para a tabela de feeds recentes
         model.addAttribute("atividadesRecentes", atividadeRepository.findAll());
 
         return "index";

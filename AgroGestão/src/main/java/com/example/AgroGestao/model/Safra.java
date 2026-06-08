@@ -14,7 +14,7 @@ public class Safra {
     private String nome;
     private String cultura;
     private LocalDate dataInicio;
-    private LocalDate dataFimPrevista; // Nome alinhado com o formulário
+    private LocalDate dataFimPrevista;
     private String status;
 
     @ManyToOne
