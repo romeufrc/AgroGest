@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroGestor - Gestão de Safras</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar-logo {
+            width: 38px; height: 38px; background-color: #198754; color: white;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div th:replace="~{sidebar :: sidebar}"></div>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mt-3 mx-3 rounded-3 ps-5">
+    <div class="container-fluid px-3">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-link link-dark p-0 me-3 text-decoration-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarAgroGestor" aria-controls="sidebarAgroGestor">
+                <i class="bi bi-list fs-3 text-success"></i>
+            </button>
+            <div class="navbar-logo me-2 fw-bold shadow-sm">
+                <i class="bi bi-tree-fill"></i>
+            </div>
+            <span class="navbar-brand fw-bold text-dark mb-0">AgroGestor</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 pe-3">
+            <div class="text-end d-none d-sm-block">
+                <span class="fw-semibold text-dark d-block lh-1 small" th:text="${session.usuarioLogado != null ? session.usuarioLogado.nome : 'Produtor'}">Produtor</span>
+                <span class="text-muted text-xs align-top" style="font-size: 11px;">Painel de Controle</span>
+            </div>
+            <a href="/perfil" class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm border" style="width: 38px; height: 38px;">
+                <i class="bi bi-person-circle fs-5 text-success"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<main class="container-fluid px-4 py-4 mt-2">
+    <div class="row g-4">
+
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-patch-plus fs-4 text-success"></i>
+                    <h3 class="h5 fw-bold text-dark mb-0" th:text="${novaSafra.id != null} ? 'Editar Safra' : 'Planejar Nova Safra'">Planejar Nova Safra</h3>
+                </div>
+                <p class="text-muted small mb-4">Registre o ciclo de cultivo definindo a cultura, a propriedade e o período estimado.</p>
+
+                <form th:action="@{/safras-view/salvar}" th:object="${novaSafra}" method="POST">
+                    <input type="hidden" th:field="*{id}">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Identificação / Nome da Safra</label>
+                        <input type="text" th:field="*{nome}" class="form-control" placeholder="Ex: Safra de Inverno 2026" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Cultura / Produto</label>
+                        <input type="text" th:field="*{cultura}" class="form-control" placeholder="Ex: Milho, Soja" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Fazenda / Propriedade</label>
+                        <select th:field="*{propriedade}" class="form-select" required>
+                            <option value="" disabled selected>Selecione a propriedade...</option>
+                            <option th:each="prop : ${propriedades}" th:value="${prop.id}" th:text="${prop.nome}">Fazenda</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-medium text-secondary">Início Estimado</label>
+                            <input type="date" th:field="*{dataInicio}" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-medium text-secondary">Fim Previsto</label>
+                            <input type="date" th:field="*{dataFimPrevista}" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-medium text-secondary">Status da Safra</label>
+                        <select th:field="*{status}" class="form-select" required>
+                            <option value="Planejada">Planejada</option>
+                            <option value="Em Andamento">Em Andamento</option>
+                            <option value="Colhida">Colhida</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success py-2 fw-medium">
+                            <i class="bi bi-check-circle me-1"></i> Salvar Temporada
+                        </button>
+                        <a th:if="${novaSafra.id != null}" th:href="@{/safras-view}" class="btn btn-light btn-sm text-secondary">
+                            Cancelar Edição
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-layers-half fs-4 text-success"></i>
+                        <h3 class="h5 fw-bold text-dark mb-0">Ciclos de Safras Registrados</h3>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-secondary small text-uppercase fw-bold">
+                        <tr>
+                            <th class="px-3">Safra / Cultura</th>
+                            <th>Propriedade</th>
+                            <th>Período</th>
+                            <th>Status</th>
+                            <th class="text-center" style="width: 100px;">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                        <tr th:if="${#lists.isEmpty(safras)}">
+                            <td colspan="5" class="text-center py-4 text-muted small">
+                                <i class="bi bi-exclamation-circle d-block fs-3 mb-2 text-black-50"></i>
+                                Nenhuma safra foi mapeada para esta temporada.
+                            </td>
+                        </tr>
+
+                        <tr th:each="s : ${safras}">
+                            <td class="px-3">
+                                <span class="fw-semibold text-dark d-block" th:text="${s.nome}">Nome</span>
+                                <small class="text-muted" th:text="${s.cultura}">Cultura</small>
+                            </td>
+                            <td class="text-secondary" th:text="${s.propriedade != null ? s.propriedade.nome : 'Sem vínculo'}">Fazenda</td>
+                            <td class="text-muted small">
+                                <span th:text="${s.dataInicio}">01/01/2026</span> até <span th:text="${s.dataFimPrevista}">30/05/2026</span>
+                            </td>
+                            <td>
+                                <span th:class="${s.status == 'Em Andamento' ? 'badge bg-success-subtle text-success border border-success-subtle px-2 py-1' :
+                                               (s.status == 'Planejada' ? 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1' :
+                                               (s.status == 'Colhida' ? 'badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1' :
+                                               'badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1'))}"
+                                      th:text="${s.status}">
+                                    Status
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a th:href="@{/safras-view/editar/{id}(id=${s.id})}" class="btn btn-link p-0 text-warning">
+                                        <i class="bi bi-pencil-square fs-5"></i>
+                                    </a>
+                                    <a th:href="@{/safras-view/excluir/{id}(id=${s.id})}" onclick="return confirm('Tem certeza?');" class="btn btn-link p-0 text-danger">
+                                        <i class="bi bi-trash fs-5"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

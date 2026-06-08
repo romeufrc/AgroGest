@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import com.example.AgroGestao.repository.SafraRepository;
 
 import java.util.List;
 
@@ -27,6 +28,9 @@ public class HomeController {
     @Autowired
     private GastoRepository gastoRepository;
 
+    @Autowired
+    private SafraRepository safraRepository;
+
     // ==========================================
     // ROTA PRINCIPAL: DASHBOARD DINÂMICO
     // ==========================================
@@ -36,6 +40,8 @@ public class HomeController {
         long qtdPropriedades = propriedadeRepository.count();
         long qtdAtividades = atividadeRepository.count();
         long qtdInsumos = insumosRepository.count();
+        long qtdSafras = safraRepository.count();
+
 
         // 2. Recupera todos os gastos lançados e calcula a soma total
         List<Gasto> listaGastos = gastoRepository.findAll();
@@ -53,6 +59,7 @@ public class HomeController {
         model.addAttribute("qtdAtividades", qtdAtividades);
         model.addAttribute("qtdInsumos", qtdInsumos);
         model.addAttribute("totalGasto", totalGasto);
+        model.addAttribute("qtdSafras", qtdSafras);
 
         // 4. Lista de histórico rápido para a tabela de feeds recentes
         model.addAttribute("atividadesRecentes", atividadeRepository.findAll());

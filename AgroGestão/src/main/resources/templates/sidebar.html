@@ -1,50 +1,60 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 
-<!-- Estrutura da Sidebar Offcanvas (Fica escondida e só aparece ao clicar) -->
-<div th:fragment="sidebar" class="offcanvas offcanvas-start text-white bg-dark" tabindex="-1" id="sidebarAgroGestor" aria-labelledby="sidebarAgroGestorLabel" style="width: 280px;">
+<div th:fragment="sidebar">
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarAgroGestor" aria-labelledby="sidebarAgroGestorLabel" style="width: 280px;">
+        <div class="offcanvas-header border-bottom ee-light">
+            <div class="d-flex align-items-center gap-2">
+                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
+                    <i class="bi bi-tree-fill"></i>
+                </div>
+                <h5 class="offcanvas-title fw-bold text-dark" id="sidebarAgroGestorLabel">AgroGestor</h5>
+            </div>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
 
-    <!-- Cabeçalho da Sidebar -->
-    <div class="offcanvas-header border-bottom border-secondary">
-        <h5 class="offcanvas-title fw-bold d-flex align-items-center" id="sidebarAgroGestorLabel">
-            <i class="bi bi-tree-fill me-2 text-success"></i> AgroGestor
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
+        <div class="offcanvas-body p-0">
+            <div class="list-group list-group-flush">
+                <a th:href="@{/}" class="list-group-item list-group-item-action py-3 px-4 border-0 d-flex align-items-center gap-3">
+                    <i class="bi bi-speedometer2 fs-5 text-success"></i>
+                    <span class="fw-medium">Dashboard</span>
+                </a>
+                <a th:href="@{/propriedades-view}" class="list-group-item list-group-item-action py-3 px-4 border-0 d-flex align-items-center gap-3">
+                    <i class="bi bi-house-gear fs-5 text-success"></i>
+                    <span class="fw-medium">Propriedades</span>
+                </a>
 
-    <!-- Links de Navegação internos -->
-    <div class="offcanvas-body d-flex flex-column justify-content-between">
-        <ul class="nav nav-pills flex-column mb-auto gap-1">
-            <li class="nav-item">
-                <a href="/" class="nav-link text-white py-2.5">
-                    <i class="bi bi-speedometer2 me-2 text-success"></i> Início
+                <a th:href="@{/safras-view}" class="list-group-item list-group-item-action py-3 px-4 border-0 d-flex align-items-center gap-3">
+                    <i class="bi bi-calendar-event fs-5 text-success"></i>
+                    <span class="fw-medium">Gerenciar Safras</span>
                 </a>
-            </li>
-            <li>
-                <a href="/propriedades-view" class="nav-link text-white py-2.5">
-                    <i class="bi bi-houses me-2 text-success"></i> Fazendas
+
+                <a th:href="@{/atividades-view}" class="list-group-item list-group-item-action py-3 px-4 border-0 d-flex align-items-center gap-3">
+                    <i class="bi bi-journal-check fs-5 text-success"></i>
+                    <span class="fw-medium">Atividades</span>
                 </a>
-            </li>
-            <li>
-                <a href="/atividades-view" class="nav-link text-white py-2.5">
-                    <i class="bi bi-calendar-check me-2 text-success"></i> Atividades
+                <a th:href="@{/insumos-view}" class="list-group-item list-group-item-action py-3 px-4 border-0 d-flex align-items-center gap-3">
+                    <i class="bi bi-box-seam fs-5 text-success"></i>
+                    <span class="fw-medium">Estoque de Insumos</span>
                 </a>
-            </li>
-            <li>
-                <a href="/gastos-view" class="nav-link text-white py-2.5">
-                    <i class="bi bi-cash-coin me-2 text-success"></i> Gastos
+                <a th:href="@{/gastos-view}" class="list-group-item list-group-item-action py-3 px-4 border-0 d-flex align-items-center gap-3">
+                    <i class="bi bi-cash-coin fs-5 text-success"></i>
+                    <span class="fw-medium">Financeiro / Gastos</span>
                 </a>
-            </li>
-            <li>
-                <a href="/insumos-view" class="nav-link text-white py-2.5">
-                    <i class="bi bi-box-seam me-2 text-success"></i> Insumos
-                </a>
-            </li>
-        </ul>
+            </div>
+        </div>
+
+        <div class="p-3 border-top bg-light">
+            <a th:href="@{/logout}" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 small fw-medium">
+                <i class="bi bi-box-arrow-right"></i> Encerar Sessão
+            </a>
+        </div>
     </div>
 </div>
 
