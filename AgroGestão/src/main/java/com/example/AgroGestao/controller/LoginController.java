@@ -49,7 +49,11 @@ public class LoginController {
 
         // Valida se o usuario existe e se a senha confere (também usando trim)
         if (usuario != null && usuario.getSenha() != null && usuario.getSenha().trim().equals(senhaLimpa)) {
-            session.setAttribute("usuarioLogado", usuario); // Salva o usuario na sessao
+
+            // 🔥 AJUSTE DE OURO: Salva o ID explicitamente para blindar o estado da sessão
+            session.setAttribute("usuarioId", usuario.getId());
+            session.setAttribute("usuarioLogado", usuario);
+
             return "redirect:/"; // Sucesso -> Vai para o painel principal
         }
 

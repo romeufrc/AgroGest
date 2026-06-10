@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface InsumosRepository extends JpaRepository<Insumos, Long> {
+    // Adicione esta linha para contar insumos por propriedade
+    long countByPropriedadeId(Long propriedadeId);
 }

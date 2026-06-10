@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SafraRepository extends JpaRepository<Safra, Long> {
+    // Adicione esta linha para contar safras por propriedade
+    long countByPropriedadeId(Long propriedadeId);
 }

@@ -19,19 +19,24 @@ public class UsuarioController {
 
     // --- ROTAS DE VIEW (THYMELEAF) ---
 
-    // Exibe a tela de perfil puxando os dados do usuario LOGADO na sessao
+    // Exibe a tela de perfil puxando os dados do usuario LOGADO na sessao via ID
     @GetMapping("/perfil")
     public String exibirPerfil(Model model, HttpSession session) {
-        // Busca o usuario que foi salvo na sessao la no LoginController
-        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+
+        // 🔥 BUSCA PELO ID: Garante consistência e impede perdas de contexto do Hibernate
+        Long usuarioId = (Long) session.getAttribute("usuarioId");
 
         // SEGURANCA: Se a sessao caiu ou nao tiver ninguem logado, manda para o login
-        if (usuarioLogado == null) {
+        if (usuarioId == null) {
             return "redirect:/login";
         }
 
         // Garante que pega os dados mais atualizados do banco usando o ID da sessao
-        Usuario usuarioAtualizado = repository.findById(usuarioLogado.getId()).orElse(usuarioLogado);
+        Usuario usuarioAtualizado = repository.findById(usuarioId).orElse(null);
+
+        if (usuarioAtualizado == null) {
+            return "redirect:/login";
+        }
 
         model.addAttribute("usuario", usuarioAtualizado);
         return "perfil";
@@ -43,7 +48,8 @@ public class UsuarioController {
         // Salva as alteracoes no banco MySQL
         Usuario usuarioSalvo = repository.save(usuario);
 
-        // Atualiza o usuario na sessao para refletir o novo nome/telefone nos menus
+        // Atualiza os dados na sessao de forma limpa para sincronizar o sistema
+        session.setAttribute("usuarioId", usuarioSalvo.getId());
         session.setAttribute("usuarioLogado", usuarioSalvo);
 
         return "redirect:/perfil?sucesso";

@@ -3,164 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroGestor - Gestão de Safras</title>
+    <title>AgroGestor - Ciclos de Safra</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
+        body { background-color: #f4f6f9; }
         .navbar-logo {
-            width: 38px; height: 38px; background-color: #198754; color: white;
+            width: 40px; height: 40px; background-color: #198754; color: white;
             display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
         }
+        .card-custom {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        .status-pill { font-size: 0.7rem; font-weight: 700; padding: 5px 12px; }
     </style>
 </head>
 <body>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
 <div th:replace="~{sidebar :: sidebar}"></div>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mt-3 mx-3 rounded-3 ps-5">
-    <div class="container-fluid px-3">
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mt-3 mx-3 rounded-3">
+    <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
-            <button class="btn btn-link link-dark p-0 me-3 text-decoration-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarAgroGestor" aria-controls="sidebarAgroGestor">
-                <i class="bi bi-list fs-3 text-success"></i>
+            <button aria-controls="sidebarAgroGestor" class="btn btn-link link-dark p-0 me-3 text-decoration-none" data-bs-target="#sidebarAgroGestor" data-bs-toggle="offcanvas" type="button">
+                <svg fill="none" height="24" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
             </button>
-            <div class="navbar-logo me-2 fw-bold shadow-sm">
-                <i class="bi bi-tree-fill"></i>
-            </div>
-            <span class="navbar-brand fw-bold text-dark mb-0">AgroGestor</span>
-        </div>
-
-        <div class="d-flex align-items-center gap-3 pe-3">
-            <div class="text-end d-none d-sm-block">
-                <span class="fw-semibold text-dark d-block lh-1 small" th:text="${session.usuarioLogado != null ? session.usuarioLogado.nome : 'Produtor'}">Produtor</span>
-                <span class="text-muted text-xs align-top" style="font-size: 11px;">Painel de Controle</span>
-            </div>
-            <a href="/perfil" class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm border" style="width: 38px; height: 38px;">
-                <i class="bi bi-person-circle fs-5 text-success"></i>
+            <a class="text-decoration-none d-flex align-items-center text-dark" th:href="@{/}">
+                <div class="navbar-logo me-3">
+                    <i class="bi bi-tree-fill fs-5"></i>
+                </div>
+                <div>
+                    <h2 class="navbar-brand mb-0 fw-bold fs-5">AgroGestor</h2>
+                    <span class="text-muted small d-block" style="margin-top: -4px;">Ciclos de Safra</span>
+                </div>
             </a>
         </div>
     </div>
 </nav>
 
-<main class="container-fluid px-4 py-4 mt-2">
-    <div class="row g-4">
+<main class="container my-4" style="max-width: 1150px;">
 
-        <div class="col-12 col-lg-4">
-            <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-patch-plus fs-4 text-success"></i>
-                    <h3 class="h5 fw-bold text-dark mb-0" th:text="${novaSafra.id != null} ? 'Editar Safra' : 'Planejar Nova Safra'">Planejar Nova Safra</h3>
+    <div class="card card-custom mb-4 bg-white py-3 px-3">
+        <div class="card-body p-1">
+            <form class="row g-3 align-items-center" method="get" th:action="@{/safras-view}">
+                <div class="col-md-4">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-filter-circle-fill text-success me-1"></i> Monitoramento por Área</h5>
+                    <span class="text-muted small">Selecione uma unidade para gerir os plantios</span>
                 </div>
-                <p class="text-muted small mb-4">Registre o ciclo de cultivo definindo a cultura, a propriedade e o período estimado.</p>
+                <div class="col-md-6">
+                    <select class="form-select border-success-subtle shadow-sm py-2" name="propriedadeId">
+                        <option value="">-- Ver Todas as Safras (Visão Geral) --</option>
+                        <option th:each="p : ${propriedades}"
+                                th:selected="${propSelecionada != null && p.id == propSelecionada.id}"
+                                th:text="${p.nome}"
+                                th:value="${p.id}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-success w-100 fw-semibold py-2 shadow-sm" type="submit">
+                        <i class="bi bi-funnel me-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                <form th:action="@{/safras-view/salvar}" th:object="${novaSafra}" method="POST">
-                    <input type="hidden" th:field="*{id}">
+    <div class="row g-4">
+        <div class="col-12 col-lg-4">
+            <div class="card card-custom p-4 bg-white shadow-sm">
+                <h3 class="h5 fw-bold text-dark mb-4 border-bottom pb-2">
+                    <i class="bi bi-journal-plus text-success me-1"></i>
+                    <span th:text="${novaSafra.id != null} ? 'Editar Planejamento' : 'Novo Planejamento'">Novo Planejamento</span>
+                </h3>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-medium text-secondary">Identificação / Nome da Safra</label>
-                        <input type="text" th:field="*{nome}" class="form-control" placeholder="Ex: Safra de Inverno 2026" required>
+                <form method="POST" th:action="@{/safras-view/salvar}" th:object="${novaSafra}">
+                    <input th:field="*{id}" type="hidden">
+
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="nomeSafra" placeholder="Ex: Safra Verão 2024" required th:field="*{nome}" type="text">
+                        <label for="nomeSafra" class="text-secondary small">Identificação da Safra</label>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-medium text-secondary">Cultura / Produto</label>
-                        <input type="text" th:field="*{cultura}" class="form-control" placeholder="Ex: Milho, Soja" required>
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="culturaSafra" placeholder="Ex: Milho" required th:field="*{cultura}" type="text">
+                        <label for="culturaSafra" class="text-secondary small">Cultura Agrícola</label>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-medium text-secondary">Fazenda / Propriedade</label>
-                        <select th:field="*{propriedade}" class="form-select" required>
-                            <option value="" disabled selected>Selecione a propriedade...</option>
-                            <option th:each="prop : ${propriedades}" th:value="${prop.id}" th:text="${prop.nome}">Fazenda</option>
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="producaoSafra" placeholder="Ex: 500" required th:field="*{producaoEstimadaSacas}" type="number" min="1">
+                        <label for="producaoSafra" class="text-secondary small">Estimativa de Produção (Sacas)</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="precoSafra" placeholder="Ex: 120.00" required th:field="*{precoSacaEsperado}" type="number" step="0.01" min="0">
+                        <label for="precoSafra" class="text-secondary small">Preço Esperado por Saca (R$)</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <select class="form-select" id="statusSafra" required th:field="*{status}">
+                            <option value="ATIVO">EM DESENVOLVIMENTO (ATIVO)</option>
+                            <option value="EM MATURAÇÃO">MATURAÇÃO (COLHEITA PRÓXIMA)</option>
+                            <option value="FINALIZADO">COLHEITA CONCLUÍDA</option>
                         </select>
+                        <label for="statusSafra" class="text-secondary small">Estágio do Ciclo</label>
                     </div>
 
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label small fw-medium text-secondary">Início Estimado</label>
-                            <input type="date" th:field="*{dataInicio}" class="form-control" required>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label small fw-medium text-secondary">Fim Previsto</label>
-                            <input type="date" th:field="*{dataFimPrevista}" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label small fw-medium text-secondary">Status da Safra</label>
-                        <select th:field="*{status}" class="form-select" required>
-                            <option value="Planejada">Planejada</option>
-                            <option value="Em Andamento">Em Andamento</option>
-                            <option value="Colhida">Colhida</option>
-                            <option value="Cancelada">Cancelada</option>
+                    <div class="form-floating mb-4">
+                        <select class="form-select" id="propSafra" required th:field="*{propriedade}">
+                            <option th:each="prop : ${propriedades}" th:text="${prop.nome}" th:value="${prop.id}">Fazenda</option>
                         </select>
+                        <label for="propSafra" class="text-secondary small">Propriedade Alvo</label>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success py-2 fw-medium">
-                            <i class="bi bi-check-circle me-1"></i> Salvar Temporada
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-light border w-50 py-2 fw-medium" th:href="@{/safras-view}" th:if="${novaSafra.id != null}">Cancelar</a>
+                        <button class="btn btn-success fw-bold py-2 shadow-sm" th:classappend="${novaSafra.id != null} ? 'w-50' : 'w-100'" type="submit">
+                            <i class="bi bi-check-all me-1"></i> Confirmar Ciclo
                         </button>
-                        <a th:if="${novaSafra.id != null}" th:href="@{/safras-view}" class="btn btn-light btn-sm text-secondary">
-                            Cancelar Edição
-                        </a>
                     </div>
                 </form>
             </div>
         </div>
 
         <div class="col-12 col-lg-8">
-            <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-layers-half fs-4 text-success"></i>
-                        <h3 class="h5 fw-bold text-dark mb-0">Ciclos de Safras Registrados</h3>
-                    </div>
+            <div class="card card-custom p-4 bg-white shadow-sm h-100">
+                <h3 class="h5 fw-bold text-dark mb-4 border-bottom pb-2">
+                    <i class="bi bi-calendar-range text-secondary me-1"></i> Cronograma de Cultivos
+                </h3>
+
+                <div class="text-center text-muted py-5 small" th:if="${#lists.isEmpty(safras)}">
+                    <i class="bi bi-calendar-x display-6 d-block mb-2 opacity-50"></i>
+                    Nenhum ciclo de safra planejado para este contexto.
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light text-secondary small text-uppercase fw-bold">
-                        <tr>
-                            <th class="px-3">Safra / Cultura</th>
-                            <th>Propriedade</th>
-                            <th>Período</th>
-                            <th>Status</th>
-                            <th class="text-center" style="width: 100px;">Ações</th>
+                <div class="table-responsive" th:if="${not #lists.isEmpty(safras)}">
+                    <table class="table table-hover align-middle border-top border-light mb-0">
+                        <thead>
+                        <tr class="text-secondary small">
+                            <th class="px-2 pb-3" scope="col">Identificação / Safra</th>
+                            <th class="pb-3" scope="col">Cultura</th>
+                            <th class="pb-3" scope="col">Rendimento Estimado</th>
+                            <th class="pb-3" scope="col">Faturamento Previsto</th>
+                            <th class="pb-3" scope="col">Status</th>
+                            <th class="text-center pb-3" scope="col">Ações</th>
                         </tr>
                         </thead>
-                        <tbody class="text-sm">
-                        <tr th:if="${#lists.isEmpty(safras)}">
-                            <td colspan="5" class="text-center py-4 text-muted small">
-                                <i class="bi bi-exclamation-circle d-block fs-3 mb-2 text-black-50"></i>
-                                Nenhuma safra foi mapeada para esta temporada.
-                            </td>
-                        </tr>
-
+                        <tbody class="small text-dark">
                         <tr th:each="s : ${safras}">
-                            <td class="px-3">
-                                <span class="fw-semibold text-dark d-block" th:text="${s.nome}">Nome</span>
-                                <small class="text-muted" th:text="${s.cultura}">Cultura</small>
-                            </td>
-                            <td class="text-secondary" th:text="${s.propriedade != null ? s.propriedade.nome : 'Sem vínculo'}">Fazenda</td>
-                            <td class="text-muted small">
-                                <span th:text="${s.dataInicio}">01/01/2026</span> até <span th:text="${s.dataFimPrevista}">30/05/2026</span>
-                            </td>
+                            <td class="px-2 fw-semibold text-dark py-3" th:text="${s.nome}">Safra Verão</td>
+                            <td class="fw-medium text-success" th:text="${s.cultura}">Soja</td>
+
+                            <td class="text-muted" th:text="${s.producaoEstimadaSacas != null ? s.producaoEstimadaSacas + ' sacas (R$ ' + s.precoSacaEsperado + '/un)' : 'Não informado'}">500 sacas</td>
+
+                            <td class="fw-bold text-dark" th:text="${s.producaoEstimadaSacas != null && s.precoSacaEsperado != null} ? 'R$ ' + ${#numbers.formatDecimal(s.producaoEstimadaSacas * s.precoSacaEsperado, 1, 'POINT', 2, 'COMMA')} : 'R$ 0,00'">R$ 0,00</td>
+
                             <td>
-                                <span th:class="${s.status == 'Em Andamento' ? 'badge bg-success-subtle text-success border border-success-subtle px-2 py-1' :
-                                               (s.status == 'Planejada' ? 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1' :
-                                               (s.status == 'Colhida' ? 'badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1' :
-                                               'badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1'))}"
-                                      th:text="${s.status}">
-                                    Status
-                                </span>
+                                <span class="badge status-pill rounded-pill"
+                                      th:classappend="${s.status == 'ATIVO' ? 'bg-success bg-opacity-10 text-success' :
+                                                       (s.status == 'EM MATURAÇÃO' ? 'bg-warning bg-opacity-10 text-warning-emphasis' : 'bg-secondary bg-opacity-10 text-secondary')}"
+                                      th:text="${s.status}">Status</span>
                             </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-2">
-                                    <a th:href="@{/safras-view/editar/{id}(id=${s.id})}" class="btn btn-link p-0 text-warning">
-                                        <i class="bi bi-pencil-square fs-5"></i>
-                                    </a>
-                                    <a th:href="@{/safras-view/excluir/{id}(id=${s.id})}" onclick="return confirm('Tem certeza?');" class="btn btn-link p-0 text-danger">
-                                        <i class="bi bi-trash fs-5"></i>
-                                    </a>
+                                    <a class="text-warning text-decoration-none" th:href="@{/safras-view/editar/{id}(id=${s.id})}" title="Editar"><i class="bi bi-pencil-square fs-5"></i></a>
+                                    <a class="text-danger text-decoration-none" onclick="return confirm('Deseja excluir este ciclo de safra?')" th:href="@{/safras-view/excluir/{id}(id=${s.id})}" title="Excluir"><i class="bi bi-trash fs-5"></i></a>
                                 </div>
                             </td>
                         </tr>
@@ -169,7 +186,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </main>
 

@@ -3,47 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroGestor - Dashboard Dinâmico</title>
+    <title>AgroGestor - Dashboard de Alta Performance</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .navbar-logo {
-            width: 38px;
-            height: 38px;
-            background-color: #198754;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        .action-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            text-decoration: none;
-            position: relative;
-        }
-        .action-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
-        }
-        .icon-box {
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.5rem;
-        }
-        .card-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
+        body { background-color: #f4f6f9; }
+        .navbar-logo { width: 38px; height: 38px; background-color: #198754; color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .action-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; text-decoration: none; position: relative; }
+        .action-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important; }
+        .icon-box { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem; }
+        .card-badge { position: absolute; top: 15px; right: 15px; font-size: 0.8rem; font-weight: 700; }
+        .alert-card { border-radius: 12px; border: none; }
+        .alert-details { font-size: 0.85rem; margin-top: 6px; padding-left: 1.2rem; }
     </style>
 </head>
 <body>
@@ -52,45 +22,38 @@
 <div th:replace="~{sidebar :: sidebar}"></div>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mt-3 mx-3 rounded-3">
-    <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
+    <div class="container-fluid px-3 position-relative d-flex align-items-center justify-content-between" style="min-height: 56px;">
 
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center z-3">
             <button class="btn btn-link link-dark p-0 me-3 text-decoration-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarAgroGestor" aria-controls="sidebarAgroGestor">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
-
-            <div class="navbar-logo me-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 12M12 3c4.97 0 9 4.03 9 9 0 2.12-.74 4.07-1.97 5.61L12 12" />
-                </svg>
+            <div class="navbar-logo me-2">
+                <i class="bi bi-speedometer2"></i>
             </div>
-            <div>
-                <h2 class="navbar-brand mb-0 fw-bold fs-5 text-dark">AgroGestor</h2>
-                <span class="text-muted small d-block" style="margin-top: -4px;">Painel de Controle Real</span>
+            <span class="fw-bold text-dark d-none d-sm-inline" style="letter-spacing: 0.5px;">AgroGestor</span>
+        </div>
+
+        <div class="position-absolute start-50 translate-middle-x text-center z-1">
+            <div th:if="${propSelecionada != null}">
+                <span class="text-success fw-bold fs-5" th:text="${propSelecionada.nome}">Fazenda Exemplo</span>
+            </div>
+            <div th:if="${propSelecionada == null}">
+                <span class="text-secondary fw-bold fs-5">Consolidação Geral</span>
             </div>
         </div>
 
-        <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-secondary text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                    <i class="bi bi-person-fill text-success fs-5"></i>
-                </div>
-                <span class="small fw-semibold text-dark d-none d-sm-inline">Perfil</span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="dropdownUser">
-                <li>
-                    <a class="dropdown-item small d-flex align-items-center gap-2 py-2" href="/perfil">
-                        <i class="bi bi-person-gear text-secondary"></i> Minha Conta
-                    </a>
-                </li>
+        <div class="dropdown z-3">
+            <button class="btn btn-light bg-white border border-light-subtle rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm"
+                    type="button" id="dropdownPerfil" data-bs-toggle="dropdown" aria-expanded="false"
+                    style="width: 40px; height: 40px; transition: all 0.2s;">
+                <i class="bi bi-person-circle fs-4 text-secondary"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3 small" aria-labelledby="dropdownPerfil">
+                <li><h6 class="dropdown-header fw-bold text-dark">Painel do Produtor</h6></li>
+                <li><a class="dropdown-item py-2 d-flex align-items-center text-muted" th:href="@{/perfil}"><i class="bi bi-person-gear me-2"></i> Meu Perfil</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a class="dropdown-item small d-flex align-items-center gap-2 py-2 text-danger" href="/login">
-                        <i class="bi bi-box-arrow-right"></i> Sair do Sistema
-                    </a>
-                </li>
+                <li><a class="dropdown-item py-2 d-flex align-items-center text-danger fw-semibold" href="/logout"><i class="bi bi-box-arrow-right me-2"></i> Encerrar Sessão</a></li>
             </ul>
         </div>
 
@@ -99,117 +62,223 @@
 
 <main class="container my-5" style="max-width: 1100px;">
 
-    <h3 class="fs-5 fw-semibold text-secondary mb-4">Módulos do Sistema</h3>
+    <div class="card shadow-sm border-0 mb-4 bg-white py-2 px-3 rounded-3">
+        <div class="card-body p-2">
+            <form th:action="@{/}" method="get" class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <h5 class="mb-0 fw-bold text-success"><i class="bi bi-sliders"></i> Contexto do Painel</h5>
+                    <span class="text-muted small">Filtre os gráficos e previsões por propriedade</span>
+                </div>
+                <div class="col-md-6">
+                    <select name="propriedadeId" class="form-select border-success-subtle shadow-sm" required>
+                        <option value="">-- Exibir Consolidação Global (Todas) --</option>
+                        <option th:each="p : ${propriedades}"
+                                th:value="${p.id}"
+                                th:text="${p.nome}"
+                                th:selected="${propSelecionada != null && p.id == propSelecionada.id}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-success w-100 fw-semibold shadow-sm">Filtrar Dados</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3 mb-5">
-
+    <h4 class="fs-6 fw-semibold text-secondary text-uppercase tracking-wider mb-3">Módulos de Acesso</h4>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
         <div class="col">
             <div onclick="location.href='/atividades-view'" class="card action-card h-100 border-light shadow-sm p-3 bg-white">
                 <div class="card-body p-0">
-                    <div class="icon-box bg-success bg-opacity-10 text-success mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                    </div>
+                    <div class="icon-box bg-success bg-opacity-10 text-success mb-2"><i class="bi bi-plus-circle-fill"></i></div>
                     <h4 class="card-title h6 fw-bold text-dark mb-1">Nova Atividade</h4>
                     <p class="card-text text-muted small mb-0">Registrar ações</p>
                 </div>
             </div>
         </div>
-
         <div class="col">
             <a th:href="@{/atividades-view}" class="card action-card h-100 border-light shadow-sm p-3 bg-white text-decoration-none">
                 <span class="badge bg-warning text-dark card-badge" th:text="${qtdAtividades}">0</span>
                 <div class="card-body p-0">
-                    <div class="icon-box bg-warning bg-opacity-10 text-warning mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.03 0 1.9.693 2.166 1.638m-7.377 0A48.536 48.536 0 0112 3c.38 0 .758.004 1.13.013M6 6.108V19.5a2.25 2.25 0 002.25 2.25h1.5m10.125-15.75a48.424 48.424 0 00-1.123-.08M6 6.108c0-1.135.845-2.098 1.976-2.192a48.424 48.424 0 011.123-.08" />
-                        </svg>
-                    </div>
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning mb-2"><i class="bi bi-journal-text"></i></div>
                     <h4 class="card-title h6 fw-bold text-dark mb-1">Histórico</h4>
-                    <p class="card-text text-muted small mb-0">Tareas em campo</p>
+                    <p class="card-text text-muted small mb-0">Tarefas em campo</p>
                 </div>
             </a>
         </div>
-
         <div class="col">
             <a th:href="@{/propriedades-view}" class="card action-card h-100 border-light shadow-sm p-3 bg-white text-decoration-none">
-                <span class="badge bg-secondary text-white card-badge" th:text="${qtdPropriedades}">0</span>
+                <span class="badge bg-secondary text-white card-badge" th:text="${propSelecionada != null ? 1 : qtdPropriedades}">0</span>
                 <div class="card-body p-0">
-                    <div class="icon-box bg-secondary bg-opacity-10 text-secondary mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                        </svg>
-                    </div>
+                    <div class="icon-box bg-secondary bg-opacity-10 text-secondary mb-2"><i class="bi bi-geo-alt"></i></div>
                     <h4 class="card-title h6 fw-bold text-dark mb-1">Propriedades</h4>
                     <p class="card-text text-muted small mb-0">Gerir fazendas</p>
                 </div>
             </a>
         </div>
-
         <div class="col">
             <a th:href="@{/insumos-view}" class="card action-card h-100 border-light shadow-sm p-3 bg-white text-decoration-none">
                 <span class="badge bg-info text-dark card-badge" th:text="${qtdInsumos}">0</span>
                 <div class="card-body p-0">
-                    <div class="icon-box bg-info bg-opacity-10 text-info mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                        </svg>
-                    </div>
+                    <div class="icon-box bg-info bg-opacity-10 text-info mb-2"><i class="bi bi-box-seam"></i></div>
                     <h4 class="card-title h6 fw-bold text-dark mb-1">Estoque</h4>
-                    <p class="card-text text-muted small mb-0">Ver insumos</p>
+                    <p class="card-text text-muted small mb-0">Insumos da área</p>
                 </div>
             </a>
         </div>
-
         <div class="col">
             <a th:href="@{/gastos-view}" class="card action-card h-100 border-light shadow-sm p-3 bg-white text-decoration-none">
                 <div class="card-body p-0">
-                    <div class="icon-box bg-danger bg-opacity-10 text-danger mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.214.116C10.157 16.793 11.854 17 13.5 17c1.31 0 2.427-.474 2.834-1.256M12 6a3 3 0 013-3V3m-3 3c-.055 0-.108.002-.161.005M12 6a3 3 0 00-3 3v2.5m3-5.5a3 3 0 00-3 3v2.5m6-.5a3 3 0 00-3-3V3m3 3a3 3 0 01-3 3V11.5M9 11.5H15m-6 0c-1.31 0-2.427.474-2.834 1.256M9 11.5c.055 0 .108.002.161.005m0 0a3 3 0 013 3v2.5" />
-                        </svg>
-                    </div>
+                    <div class="icon-box bg-danger bg-opacity-10 text-danger mb-2"><i class="bi bi-cash-coin"></i></div>
                     <h4 class="card-title h6 fw-bold text-danger mb-1">Financeiro</h4>
-                    <p class="card-text text-muted small mb-0" th:text="'R$ ' + ${totalGasto}">R$ 0,00</p>
+                    <p class="card-text text-muted small mb-0" th:text="'R$ ' + ${#numbers.formatDecimal(totalGasto, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</p>
                 </div>
             </a>
         </div>
-
     </div>
 
-    <div class="row g-4">
-        <div class="col-12 col-md-4">
-            <div class="card border-light shadow-sm p-4 bg-white h-100">
-                <h3 class="h6 fw-bold text-secondary text-uppercase tracking-wider mb-3">Resumo Operacional</h3>
-                <div class="d-flex align-items-center mb-3">
-                    <h2 class="display-5 fw-bold text-success mb-0 me-3" th:text="${qtdPropriedades}">0</h2>
-                    <p class="text-muted small mb-0">Fazendas ativas mapeadas e sob monitoramento.</p>
+    <div class="card border-0 shadow-sm p-4 bg-white mb-4 rounded-3">
+        <h4 class="fs-6 fw-bold text-dark text-uppercase tracking-wider mb-3"><i class="bi bi-bell-fill text-danger me-1"></i> Central de Alertas Operacionais</h4>
+        <div class="row g-3">
+            <div class="col-12" th:if="${!alertaOrcamento && !alertaSafras && !alertaColheita && !alertaEstoque && !alertaVazio}">
+                <div class="p-3 bg-light text-secondary rounded-3 d-flex align-items-center alert-card">
+                    <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
+                    <div>
+                        <span class="fw-bold d-block text-dark">Diagnóstico Comercial Estável</span>
+                        <span class="small text-muted">A auditoria confirmou conformidade total: fluxo de caixa estável e insumos balanceados.</span>
+                    </div>
                 </div>
-                <hr>
-                <div class="d-flex align-items-center">
-                    <h2 class="display-5 fw-bold text-warning mb-0 me-3" th:text="${qtdAtividades}">0</h2>
-                    <p class="text-muted small mb-0">Registros de manejos efetuados no campo.</p>
+            </div>
+
+            <div class="col-12" th:if="${alertaOrcamento}">
+                <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-3 d-flex align-items-center alert-card border-start border-danger border-4">
+                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+                    <div>
+                        <span class="fw-bold d-block text-dark">Risco Financeiro: Teto Orçamentário Ultrapassado!</span>
+                        <span class="small text-dark">Despesa total de <strong th:text="'R$ ' + ${#numbers.formatDecimal(totalGasto, 1, 'POINT', 2, 'COMMA')}">0,00</strong> superou o limite planejado de segurança.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12" th:if="${alertaEstoque}">
+                <div class="p-3 bg-warning bg-opacity-10 text-warning-emphasis rounded-3 d-flex align-items-center alert-card border-start border-warning border-4" style="color: #664d03;">
+                    <i class="bi bi-box-seam-fill fs-4 me-3 text-warning"></i>
+                    <div class="w-100">
+                        <span class="fw-bold d-block text-dark">Controle de Estoque: Margem de Segurança Atingida!</span>
+                        <span class="small text-dark d-block">O controle identificou produtos com saldo abaixo do limite definido definido para esta propriedade.</span>
+                        <ul class="alert-details text-dark opacity-90" style="margin-bottom: 0;">
+                            <li>Itens em Alerta Crítico: <strong class="text-danger" th:text="${produtosFaltaNome}">Nenhum listado</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12" th:if="${alertaColheita}">
+                <div class="p-3 rounded-3 d-flex align-items-center alert-card border-start border-4" style="background-color: rgba(253, 126, 20, 0.1); color: #fd7e14; border-color: #fd7e14 !important;">
+                    <i class="bi bi-hourglass-split fs-4 me-3" style="color: #fd7e14;"></i>
+                    <div>
+                        <span class="fw-bold d-block text-dark">Manejo Agrícola: Janela de Colheita Identificada!</span>
+                        <span class="small text-dark">A safra <strong th:text="${safraUrgenteNome}">Milho</strong> atingiu o status de maturação. Mobilize o maquinário.</span>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-12 col-md-8">
-            <div class="card border-light shadow-sm p-4 bg-white h-100">
-                <h3 class="h6 fw-bold text-secondary text-uppercase tracking-wider mb-3">Saúde Financeira da Temporada</h3>
-                <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-3 mb-3">
-                    <span class="small fw-semibold text-uppercase d-block">Despesa Total Operacional</span>
-                    <h2 class="fw-bold mb-0 mt-1" th:text="'R$ ' + ${totalGasto}">R$ 0,00</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-3">
+                <span class="text-muted small text-uppercase fw-semibold">Faturamento Bruto Projetado</span>
+                <h3 class="fw-bold text-success mt-1 mb-0" th:text="'R$ ' + ${#numbers.formatDecimal(faturamentoProjetado, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</h3>
+                <span class="text-muted small d-block mt-1" style="font-size: 0.75rem;"><i class="bi bi-graph-up-arrow"></i> Baseado no preço estimado das sacas</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-3">
+                <span class="text-muted small text-uppercase fw-semibold">Custos Diretos Acumulados</span>
+                <h3 class="fw-bold text-danger mt-1 mb-0" th:text="'R$ ' + ${#numbers.formatDecimal(totalGasto, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</h3>
+                <span class="text-muted small d-block mt-1" style="font-size: 0.75rem;"><i class="bi bi-receipt"></i> Notas e aportes de despesas de campo</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 rounded-3 text-white" th:classappend="${lucroLiquidoProjetado >= 0} ? 'bg-success' : 'bg-danger'">
+                <span class="small text-uppercase opacity-75 fw-semibold">Lucro Líquido Estimado</span>
+                <h3 class="fw-bold mt-1 mb-0" th:text="'R$ ' + ${#numbers.formatDecimal(lucroLiquidoProjetado, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</h3>
+                <span class="small d-block mt-1 opacity-75" style="font-size: 0.75rem;"><i class="bi bi-wallet2"></i> Retorno líquido real projetado</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 bg-white mb-4 rounded-3">
+        <h4 class="fs-6 fw-bold text-dark text-uppercase tracking-wider mb-3"><i class="bi bi-bar-chart-line-fill text-primary"></i> Análise Temporal Balanço de Despesas</h4>
+        <div style="height: 250px; position: relative;">
+            <canvas id="graficoCustosAgro"></canvas>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 bg-white h-100 rounded-3">
+                <h5 class="fs-6 fw-bold text-secondary mb-3"><i class="bi bi-list-task"></i> Últimos Manejos</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <tbody class="text-muted">
+                        <tr th:each="a : ${atividadesRecentes}">
+                            <td class="fw-semibold text-dark" th:text="${a.nome}">Manejo</td>
+                            <td><span class="badge bg-warning bg-opacity-10 text-dark" th:text="${a.tipo}">Tipo</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(atividadesRecentes)}"><td colspan="2" class="text-center py-3">Sem registros.</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-                <p class="text-muted small mb-0">
-                    Este valor reflete o somatório em tempo real de todas as manutenções, insumos comprados e despesas diretas lançadas pelos gerentes de campo nas propriedades vinculadas.
-                </p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 bg-white h-100 rounded-3">
+                <h5 class="fs-6 fw-bold text-secondary mb-3"><i class="bi bi-tree"></i> Safras Rodando</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <tbody class="text-muted">
+                        <tr th:each="s : ${safrasFiltradas}">
+                            <td class="fw-semibold text-dark" th:text="${s.nome}">Safra</td>
+                            <td class="text-success fw-semibold" th:text="${s.cultura}">Milho</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(safrasFiltradas)}"><td colspan="2" class="text-center py-3">Sem registros.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:inline="javascript">
+    var totalGastoBack = /*[[${totalGasto}]]*/ 0;
+    var totalReceitaBack = /*[[${faturamentoProjetado}]]*/ 0;
+
+    const ctx = document.getElementById('graficoCustosAgro').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Custos de Operação (R$)', 'Faturamento Esperado (R$)'],
+            datasets: [{
+                label: 'Fluxo Econômico Consolidado',
+                data: [totalGastoBack, totalReceitaBack],
+                backgroundColor: ['rgba(220, 53, 69, 0.25)', 'rgba(25, 135, 84, 0.25)'],
+                borderColor: ['#dc3545', '#198754'],
+                borderWidth: 2,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

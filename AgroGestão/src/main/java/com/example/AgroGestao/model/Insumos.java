@@ -3,6 +3,7 @@ package com.example.AgroGestao.model;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "insumos")
 public class Insumos {
 
     @Id
@@ -10,74 +11,39 @@ public class Insumos {
     private Long id;
 
     private String nome;
+    private String tipo;
+    private Integer quantidade;
 
-    private String tipo; // Ex: Fertilizante, Semente, Defensivo
-
-    private Double quantidade;
-
-    private String unidadeMedida; // Ex: sacas, kg, litros
-
-    @ManyToOne
+    // 🟢 GARANTIA: Mudei para EAGER pro Hibernate carregar o galpão da fazenda na hora!
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "propriedade_id")
     private Propriedade propriedade;
 
-    public Insumos() {
-    }
+    public Insumos() {}
 
-    public Insumos(Long id, String nome, String tipo, Double quantidade, String unidadeMedida, Propriedade propriedade) {
+    public Insumos(Long id, String nome, String tipo, Integer quantidade, Propriedade propriedade) {
         this.id = id;
         this.nome = nome;
         this.tipo = tipo;
         this.quantidade = quantidade;
-        this.unidadeMedida = unidadeMedida;
         this.propriedade = propriedade;
     }
 
-    public Long getId() {
-        return id;
-    }
+    // Getters e Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public String getNome() {
-        return nome;
-    }
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    public Integer getQuantidade() { return quantidade; }
+    public void setQuantity(Integer quantidade) { this.quantidade = quantidade; }
+    // Deixei o setter clássico mapeado caso seu form use setQuantidade
+    public void setQuantidade(Integer quantidade) { this.quantidade = quantidade; }
 
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public Double getQuantidade() {
-        return quantidade;
-    }
-
-    public void setQuantidade(Double quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    public String getUnidadeMedida() {
-        return unidadeMedida;
-    }
-
-    public void setUnidadeMedida(String unidadeMedida) {
-        this.unidadeMedida = unidadeMedida;
-    }
-
-    public Propriedade getPropriedade() {
-        return propriedade;
-    }
-
-    public void setPropriedade(Propriedade propriedade) {
-        this.propriedade = propriedade;
-    }
+    public Propriedade getPropriedade() { return propriedade; }
+    public void setPropriedade(Propriedade propriedade) { this.propriedade = propriedade; }
 }

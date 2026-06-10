@@ -6,31 +6,55 @@
     <title>AgroGestor - Atividades Agrícolas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
+        body { background-color: #f4f6f9; }
         .navbar-logo {
-            width: 38px; height: 38px; background-color: #198754; color: white;
+            width: 40px; height: 40px; background-color: #198754; color: white;
             display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+        }
+        .card-custom {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .btn-action:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
 <body>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
 <div th:replace="~{sidebar :: sidebar}"></div>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mt-3 mx-3 rounded-3">
-    <div class="container-fluid px-3">
+    <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
-            <button class="btn btn-link link-dark p-0 me-3 text-decoration-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarAgroGestor" aria-controls="sidebarAgroGestor">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <button aria-controls="sidebarAgroGestor" class="btn btn-link link-dark p-0 me-3 text-decoration-none" data-bs-target="#sidebarAgroGestor" data-bs-toggle="offcanvas" type="button">
+                <svg fill="none" height="24" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </button>
 
-            <a th:href="@{/}" class="text-decoration-none d-flex align-items-center text-dark">
+            <a class="text-decoration-none d-flex align-items-center text-dark" th:href="@{/}">
                 <div class="navbar-logo me-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    <svg fill="none" height="20" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </div>
                 <div>
@@ -42,42 +66,70 @@
     </div>
 </nav>
 
-<main class="container my-5" style="max-width: 1100px;">
+<main class="container my-4" style="max-width: 1150px;">
+
+    <div class="card card-custom mb-4 bg-white py-3 px-3">
+        <div class="card-body p-1">
+            <form class="row g-3 align-items-center" method="get" th:action="@{/atividades-view}">
+                <div class="col-md-4">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-filter-square-fill text-success me-1"></i> Filtrar Atividades</h5>
+                    <span class="text-muted small">Isole os manejos por unidade produtiva</span>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-select border-secondary-subtle shadow-sm py-2" name="propriedadeId">
+                        <option value="">-- Exibir Operações Globais (Todas) --</option>
+                        <option th:each="p : ${propriedades}"
+                                th:selected="${propSelecionada != null && p.id == propSelecionada.id}"
+                                th:text="${p.nome}"
+                                th:value="${p.id}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-success w-100 fw-semibold py-2 shadow-sm" type="submit">
+                        <i class="bi bi-search me-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="row g-4">
-
         <div class="col-12 col-lg-4">
-            <div class="card border-light shadow-sm p-4 bg-white">
-                <h3 class="h5 fw-bold text-dark mb-4" th:text="${novaAtividade.id != null} ? 'Editar Operação' : 'Nova Atividade'">Nova Atividade</h3>
+            <div class="card card-custom p-4 bg-white shadow-sm">
+                <h3 class="h5 fw-bold text-dark mb-4 border-bottom pb-2">
+                    <i class="bi bi-calendar-plus-fill text-success me-1"></i>
+                    <span th:text="${novaAtividade.id != null} ? 'Editar Operação' : 'Nova Atividade'">Nova Atividade</span>
+                </h3>
 
-                <form th:action="@{/atividades-view/salvar}" th:object="${novaAtividade}" method="POST">
-                    <input type="hidden" th:field="*{id}">
+                <form method="POST" th:action="@{/atividades-view/salvar}" th:object="${novaAtividade}">
+                    <input th:field="*{id}" type="hidden">
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-medium text-secondary">Nome do Manejo</label>
-                        <input type="text" th:field="*{nome}" placeholder="Ex: Plantio de Milho" class="form-control text-sm" required>
+                    <div class="form-floating mb-3">
+                        <input class="form-control text-sm" id="nomeAtv" placeholder="Nome do Manejo" required th:field="*{nome}" type="text">
+                        <label for="nomeAtv" class="text-secondary small">Nome do Manejo</label>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-medium text-secondary">Tipo / Descrição</label>
-                        <input type="text" th:field="*{descricao}" placeholder="Ex: Aplicação automatizada de sementes" class="form-control text-sm" required>
+                    <div class="form-floating mb-3">
+                        <input class="form-control text-sm" id="descAtv" placeholder="Tipo / Descrição" required th:field="*{descricao}" type="text">
+                        <label for="descAtv" class="text-secondary small">Tipo / Descrição</label>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-medium text-secondary">Data de Execução</label>
-                        <input type="date" th:field="*{data}" class="form-control text-sm" required>
+                    <div class="form-floating mb-3">
+                        <input class="form-control text-sm" id="dataAtv" required th:field="*{data}" type="date">
+                        <label for="dataAtv" class="text-secondary small">Data de Execução</label>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-medium text-secondary">Propriedade Afetada</label>
-                        <select th:field="*{propriedade}" class="form-select text-sm" required>
-                            <option th:each="prop : ${propriedades}" th:value="${prop.id}" th:text="${prop.nome}">Fazenda</option>
+                    <div class="form-floating mb-4">
+                        <select class="form-select text-sm" id="propAtv" required th:field="*{propriedade}">
+                            <option th:each="prop : ${propriedades}" th:text="${prop.nome}" th:value="${prop.id}">Fazenda</option>
                         </select>
+                        <label for="propAtv" class="text-secondary small">Propriedade Afetada</label>
                     </div>
 
-                    <div class="d-flex gap-2 mt-3">
-                        <a th:if="${novaAtividade.id != null}" th:href="@{/atividades-view}" class="btn btn-light w-50 py-2 fw-medium">Cancelar</a>
-                        <button type="submit" class="btn btn-success fw-medium py-2" th:classappend="${novaAtividade.id != null} ? 'w-50' : 'w-100'">
-                            Salvar Atividade
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-light border w-50 py-2 fw-medium rounded-2" th:href="@{/atividades-view}" th:if="${novaAtividade.id != null}">Cancelar</a>
+                        <button class="btn btn-success fw-bold py-2 rounded-2 shadow-sm" th:classappend="${novaAtividade.id != null} ? 'w-50' : 'w-100'" type="submit">
+                            <i class="bi bi-check-circle-fill me-1"></i> Salvar Atividade
                         </button>
                     </div>
                 </form>
@@ -85,35 +137,41 @@
         </div>
 
         <div class="col-12 col-lg-8">
-            <div class="card border-light shadow-sm p-4 bg-white h-100">
-                <h3 class="h5 fw-bold text-dark mb-4">Registro Histórico de Campo</h3>
+            <div class="card card-custom p-4 bg-white shadow-sm">
+                <h3 class="h5 fw-bold text-dark mb-4 border-bottom pb-2">
+                    <i class="bi bi-clock-history text-secondary me-1"></i> Registro Histórico de Campo
+                </h3>
 
-                <div th:if="${#lists.isEmpty(atividades)}" class="text-center text-muted py-5 small">
-                    Nenhuma operação agrícola registrada nas fazendas.
+                <div class="text-center text-muted py-5 small" th:if="${#lists.isEmpty(atividades)}">
+                    <i class="bi bi-folder-x display-6 d-block mb-2 opacity-50"></i>
+                    Nenhuma operação agrícola registrada nas fazendas para este contexto.
                 </div>
 
-                <div th:if="${not #lists.isEmpty(atividades)}" class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                        <tr class="text-secondary small" style="font-size: 0.75rem;">
-                            <th scope="col" class="px-3">Operação</th>
-                            <th scope="col">Propriedade</th>
-                            <th scope="col">Data</th>
-                            <th scope="col" class="text-center">Ações</th>
+                <div class="table-responsive" th:if="${not #lists.isEmpty(atividades)}">
+                    <table class="table table-hover align-middle border-top border-light mb-0">
+                        <thead>
+                        <tr class="text-secondary small">
+                            <th class="px-2 pb-3" scope="col">Operação / Manejo</th>
+                            <th class="pb-3" scope="col">Propriedade</th>
+                            <th class="pb-3" scope="col">Data</th>
+                            <th class="text-center pb-3" scope="col">Ações</th>
                         </tr>
                         </thead>
                         <tbody class="small text-dark">
                         <tr th:each="atv : ${atividades}">
-                            <td class="px-3 fw-semibold text-dark" th:text="${atv.nome}">Manejo</td>
-                            <td class="text-secondary" th:text="${atv.propriedade != null ? atv.propriedade.nome : 'Sem vínculo'}">Fazenda</td>
+                            <td class="px-2 fw-semibold text-dark py-3" th:text="${atv.nome}">Manejo</td>
+                            <td>
+                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-semibold"
+                                      th:text="${atv.propriedade != null ? atv.propriedade.nome : 'Sem vínculo'}">Fazenda</span>
+                            </td>
                             <td class="text-muted" th:text="${atv.data}">Data</td>
                             <td class="text-center">
-                                <div class="d-flex justify-content-center gap-2">
-                                    <a th:href="@{/atividades-view/editar/{id}(id=${atv.id})}" class="btn btn-link p-0 text-decoration-none text-warning">
-                                        <i class="bi bi-pencil-square fs-5"></i>
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a class="btn btn-action bg-warning bg-opacity-10 text-warning" th:href="@{/atividades-view/editar/{id}(id=${atv.id})}" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <a th:href="@{/atividades-view/excluir/{id}(id=${atv.id})}" onclick="return confirm('Deseja deletar esta atividade?')" class="btn btn-link p-0 text-decoration-none text-danger">
-                                        <i class="bi bi-trash fs-5"></i>
+                                    <a class="btn btn-action bg-danger bg-opacity-10 text-danger" onclick="return confirm('Deseja deletar esta atividade?')" th:href="@{/atividades-view/excluir/{id}(id=${atv.id})}" title="Apagar">
+                                        <i class="bi bi-trash"></i>
                                     </a>
                                 </div>
                             </td>

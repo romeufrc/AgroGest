@@ -1,14 +1,16 @@
 package com.example.AgroGestao.controller;
 
 import com.example.AgroGestao.model.Atividade;
-import com.example.AgroGestao.model.Insumos;
+import com.example.AgroGestao.model.Propriedade;
 import com.example.AgroGestao.repository.AtividadeRepository;
-import com.example.AgroGestao.repository.InsumosRepository;
 import com.example.AgroGestao.repository.PropriedadeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/atividades-view")
@@ -20,63 +22,76 @@ public class AtividadeController {
     @Autowired
     private PropriedadeRepository propriedadeRepository;
 
-    @Autowired
-    private InsumosRepository insumosRepository;
-
-    // Exibe o historico de operacoes e preenche os selects do form
     @GetMapping
-    public String exibirAtividades(Model model) {
-        model.addAttribute("atividades", atividadeRepository.findAll());
-        model.addAttribute("propriedades", propriedadeRepository.findAll());
-        model.addAttribute("insumos", insumosRepository.findAll()); // Lista os insumos no form
+    public String exibirAtividades(@RequestParam(name = "propriedadeId", required = false) Long propriedadeId, Model model) {
 
-        // Se nao estiver editando, envia uma atividade vazia
+        List<Atividade> todasAtividades = atividadeRepository.findAll();
+        List<Atividade> atividadesFiltradas = new ArrayList<>();
+
+        model.addAttribute("propriedades", propriedadeRepository.findAll());
+
+        if (propriedadeId != null) {
+            Propriedade prop = propriedadeRepository.findById(propriedadeId).orElse(null);
+            if (prop != null) {
+                model.addAttribute("propSelecionada", prop);
+
+                if (todasAtividades != null) {
+                    for (Atividade a : todasAtividades) {
+                        if (a != null && a.getPropriedade() != null && propriedadeId.equals(gethId(a.getPropriedade()))) {
+                            atividadesFiltradas.add(a);
+                        }
+                    }
+                }
+                model.addAttribute("atividades", atividadesFiltradas);
+            } else {
+                model.addAttribute("propSelecionada", null);
+                model.addAttribute("atividades", todasAtividades);
+            }
+        } else {
+            model.addAttribute("propSelecionada", null);
+            model.addAttribute("atividades", todasAtividades);
+        }
+
         if (!model.containsAttribute("novaAtividade")) {
             model.addAttribute("novaAtividade", new Atividade());
         }
         return "atividades";
     }
 
-    // Salva a atividade e reduz a quantidade usada do estoque automaticamente
     @PostMapping("/salvar")
-    public String salvarNovaAtividade(@ModelAttribute Atividade atividade,
-                                      @RequestParam(required = false) Long insumoId,
-                                      @RequestParam(defaultValue = "0") double quantidadeUsada) {
-
-        atividadeRepository.save(atividade); // Salva ou atualiza a atividade
-
-        // REGRA DE NEGOCIO: Da baixa automatica no estoque do insumo selecionado
-        if (insumoId != null && quantidadeUsada > 0) {
-            Insumos insumo = insumosRepository.findById(insumoId).orElse(null);
-            if (insumo != null) {
-                double estoqueAtual = insumo.getQuantidade();
-                if (estoqueAtual >= quantidadeUsada) {
-                    insumo.setQuantidade(estoqueAtual - quantidadeUsada);
-                    insumosRepository.save(insumo); // Salva o novo estoque reduzido
-                }
-            }
+    public String salvarAtividade(@ModelAttribute Atividade atividade) {
+        if (atividade.getPropriedade() != null && atividade.getPropriedade().getId() != null) {
+            Propriedade prop = propriedadeRepository.findById(atividade.getPropriedade().getId()).orElse(null);
+            atividade.setPropriedade(prop);
         }
+        // Define o tipo com base no nome ou descrição se o seu banco exigir a coluna preenchida
+        if (atividade.getTipo() == null || atividade.getTipo().isEmpty()) {
+            atividade.setTipo("Campo");
+        }
+        atividadeRepository.save(atividade);
         return "redirect:/atividades-view";
     }
 
-    // Busca a atividade pelo ID e joga no form para editar
     @GetMapping("/editar/{id}")
     public String editarAtividade(@PathVariable Long id, Model model) {
         Atividade atividade = atividadeRepository.findById(id).orElse(null);
         if (atividade != null) {
-            model.addAttribute("novaAtividade", atividade); // Preenche o form
-            model.addAttribute("atividades", atividadeRepository.findAll()); // Mantem a lista carregada
+            model.addAttribute("novaAtividade", atividade);
+            model.addAttribute("atividades", atividadeRepository.findAll());
             model.addAttribute("propriedades", propriedadeRepository.findAll());
-            model.addAttribute("insumos", insumosRepository.findAll());
+            model.addAttribute("propSelecionada", null);
             return "atividades";
         }
         return "redirect:/atividades-view";
     }
 
-    // Remove uma atividade registrada incorretamente
     @GetMapping("/excluir/{id}")
     public String excluirAtividade(@PathVariable Long id) {
         atividadeRepository.deleteById(id);
         return "redirect:/atividades-view";
+    }
+
+    private Long gethId(Propriedade p) {
+        return p != null ? p.getId() : null;
     }
 }
