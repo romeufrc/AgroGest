@@ -14,7 +14,7 @@ public class Insumos {
     private String tipo;
     private Integer quantidade;
 
-    // 🟢 GARANTIA: Mudei para EAGER pro Hibernate carregar o galpão da fazenda na hora!
+    //Mudei para EAGER pro Hibernate carregar o galpão da fazenda na hora!
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "propriedade_id")
     private Propriedade propriedade;
@@ -41,7 +41,7 @@ public class Insumos {
 
     public Integer getQuantidade() { return quantidade; }
     public void setQuantity(Integer quantidade) { this.quantidade = quantidade; }
-    // Deixei o setter clássico mapeado caso seu form use setQuantidade
+    // Deixei o setter clássico mapeado o form use setQuantidade
     public void setQuantidade(Integer quantidade) { this.quantidade = quantidade; }
 
     public Propriedade getPropriedade() { return propriedade; }

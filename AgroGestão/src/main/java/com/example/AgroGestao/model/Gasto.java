@@ -17,12 +17,12 @@ public class Gasto {
     @Column(name = "data_gasto")
     private LocalDate dataGasto;
 
-    // 🟢 CORREÇÃO: Força o carregamento imediato do relacionamento com a Propriedade
+    //Força o carregamento imediato do relacionamento com a Propriedade
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "propriedade_id")
     private Propriedade propriedade;
 
-    // Construtores
+    //Construtores
     public Gasto() {}
 
     public Gasto(Long id, String descricao, Double valor, LocalDate dataGasto, Propriedade propriedade) {

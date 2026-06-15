@@ -16,7 +16,7 @@ public class Atividade {
     private LocalDate data;
     private String tipo;
 
-    // 🟢 GARANTIA: Carregamento imediato para evitar tabelas "Sem vínculo"
+    //Carregamento imediato para evitar tabelas "Sem vínculo"
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "propriedade_id")
     private Propriedade propriedade;
