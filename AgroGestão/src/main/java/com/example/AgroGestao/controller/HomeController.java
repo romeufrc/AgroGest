@@ -259,7 +259,7 @@ public class HomeController {
         model.addAttribute("produtosFaltaNome", itensEstoqueBaixo);
         model.addAttribute("faturamentoProjetado", faturamentoProjetado);
 
-        // Minha formula para encontrar o Lucro Liquido subtraindo as despesas totais do faturamento projetado
+        //Lucro Liquido subtraindo as despesas totais do faturamento projetado
         model.addAttribute("lucroLiquidoProjetado", (faturamentoProjetado - totalGastoCalculado));
         model.addAttribute("logsAuditoria", logsSimulados);
 
