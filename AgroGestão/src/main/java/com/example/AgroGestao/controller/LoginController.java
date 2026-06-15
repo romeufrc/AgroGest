@@ -3,6 +3,7 @@ package com.example.AgroGestao.controller;
 import com.example.AgroGestao.model.Usuario;
 import com.example.AgroGestao.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpSession;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,56 +17,53 @@ public class LoginController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // Exibe a tela de login
     @GetMapping("/login")
     public String login() {
-        // Se nao houver nenhum usuario no banco, cria o seu perfil automaticamente
+        //Se o banco estiver vazio, eu crio o perfil inicial já com a senha criptografada
         if (usuarioRepository.count() == 0) {
             Usuario usuarioPadrao = new Usuario();
             usuarioPadrao.setNome("Romeu Rodrigues");
             usuarioPadrao.setTelefone("83991360945");
-            usuarioPadrao.setSenha("agro123");
-            usuarioRepository.save(usuarioPadrao); // Salva direto no MySQL
+
+            //Criptografo a senha "agro123" usando o algoritmo BCrypt antes de salvar no banco
+            String senhaCriptografada = BCrypt.hashpw("agro123", BCrypt.gensalt());
+            usuarioPadrao.setSenha(senhaCriptografada);
+
+            usuarioRepository.save(usuarioPadrao);
         }
         return "login";
     }
 
-    // Processa os dados digitados na tela
     @PostMapping("/login")
     public String fazerLogin(@RequestParam String telefone,
                              @RequestParam String senha,
                              HttpSession session,
                              Model model) {
 
-        //Remove espaços em branco que o teclado pode colocar sem querer
         String telefoneLimpo = (telefone != null) ? telefone.trim() : "";
         String senhaLimpa = (senha != null) ? senha.trim() : "";
 
-        // Procura no banco de dados o usuario comparando os textos limpos (.trim())
         Usuario usuario = usuarioRepository.findAll().stream()
                 .filter(u -> u.getTelefone() != null && telefoneLimpo.equals(u.getTelefone().trim()))
                 .findFirst()
                 .orElse(null);
 
-        // Valida se o usuario existe e se a senha confere (também usando trim)
-        if (usuario != null && usuario.getSenha() != null && usuario.getSenha().trim().equals(senhaLimpa)) {
+        // Validacao de seguranca: Uso o metodo checkpw do BCrypt para comparar a senha limpa digitada com o hash salvo no banco
+        if (usuario != null && usuario.getSenha() != null && BCrypt.checkpw(senhaLimpa, usuario.getSenha())) {
 
-            //Salva o ID explicitamente para blindar o estado da sessão
             session.setAttribute("usuarioId", usuario.getId());
             session.setAttribute("usuarioLogado", usuario);
 
-            return "redirect:/"; // Sucesso -> Vai para o painel principal
+            return "redirect:/";
         }
 
-        // Se falhar, manda a mensagem de erro para o HTML
         model.addAttribute("erro", "Telefone ou senha incorretos!");
         return "login";
     }
 
-    // Rota para o botao de Sair limpar a sessao
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate(); // Apaga a sessao do navegador
+        session.invalidate();
         return "redirect:/login";
     }
 }

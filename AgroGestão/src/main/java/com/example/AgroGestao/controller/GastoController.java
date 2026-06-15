@@ -2,9 +2,11 @@ package com.example.AgroGestao.controller;
 
 import com.example.AgroGestao.model.Gasto;
 import com.example.AgroGestao.model.Propriedade;
+import com.example.AgroGestao.model.Usuario;
 import com.example.AgroGestao.repository.GastoRepository;
 import com.example.AgroGestao.repository.PropriedadeRepository;
-import com.example.AgroGestao.service.GastoService; // Importei a minha classe Service do módulo financeiro
+import com.example.AgroGestao.service.GastoService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,46 +26,53 @@ public class GastoController {
     private PropriedadeRepository propriedadeRepository;
 
     @Autowired
-    private GastoService gastoService; // Injetei o Service para garantir que nenhum gasto zerado passe
+    private GastoService gastoService;
 
-    //Método para listar os gastos na tela e calcular o total
+    // Meu controlador de interface para a parte financeira. Tudo eh isolado pelo ID da sessao.
     @GetMapping
-    public String exibirGastos(@RequestParam(name = "propriedadeId", required = false) Long propriedadeId, Model model) {
+    public String exibirGastos(@RequestParam(name = "propriedadeId", required = false) Long propriedadeId, Model model, HttpSession session) {
+        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) return "redirect:/login";
 
-        List<Gasto> todosGastos = gastoRepository.findAll();
-        List<Gasto> gastosFiltrados = new ArrayList<>();
+        // Carrego as propriedades relativas apenas a mim para o formulario
+        List<Propriedade> minhasPropriedades = new ArrayList<>();
+        for (Propriedade p : propriedadeRepository.findAll()) {
+            if (p.getUsuario() != null && p.getUsuario().getId().equals(usuarioLogado.getId())) {
+                minhasPropriedades.add(p);
+            }
+        }
+        model.addAttribute("propriedades", minhasPropriedades);
+
+        List<Gasto> meusGastos = new ArrayList<>();
         double total = 0.0;
 
-        model.addAttribute("propriedades", propriedadeRepository.findAll());
+        // Calculo o total de despesas somando apenas os meus registros
+        for (Gasto g : gastoRepository.findAll()) {
+            if (g.getPropriedade() != null && g.getPropriedade().getUsuario() != null && g.getPropriedade().getUsuario().getId().equals(usuarioLogado.getId())) {
+                if (propriedadeId != null) {
+                    if (propriedadeId.equals(g.getPropriedade().getId())) {
+                        meusGastos.add(g);
+                        if (g.getValor() != null) total += g.getValor();
+                    }
+                } else {
+                    meusGastos.add(g);
+                    if (g.getValor() != null) total += g.getValor();
+                }
+            }
+        }
+        model.addAttribute("gastos", meusGastos);
+        model.addAttribute("totalGasto", total);
 
         if (propriedadeId != null) {
-            Propriedade prop = propriedadeRepository.findById(propriedadeId).orElse(null);
-            if (prop != null) {
-                model.addAttribute("propSelecionada", prop);
-
-                if (todosGastos != null) {
-                    for (Gasto g : todosGastos) {
-                        if (g != null && g.getPropriedade() != null && propriedadeId.equals(g.getPropriedade().getId())) {
-                            gastosFiltrados.add(g);
-                            if (g.getValor() != null) {
-                                total += g.getValor();
-                            }
-                        }
-                    }
-                }
-                model.addAttribute("gastos", gastosFiltrados);
+            Propriedade p = propriedadeRepository.findById(propriedadeId).orElse(null);
+            if (p != null && p.getUsuario() != null && p.getUsuario().getId().equals(usuarioLogado.getId())) {
+                model.addAttribute("propSelecionada", p);
             } else {
-                model.addAttribute("propSelecionada", null);
-                model.addAttribute("gastos", todosGastos);
-                total = obterSomaGlobal(todosGastos);
+                return "redirect:/gastos-view";
             }
         } else {
             model.addAttribute("propSelecionada", null);
-            model.addAttribute("gastos", todosGastos);
-            total = obterSomaGlobal(todosGastos);
         }
-
-        model.addAttribute("totalGasto", total);
 
         if (!model.containsAttribute("novoGasto")) {
             model.addAttribute("novoGasto", new Gasto());
@@ -71,33 +80,52 @@ public class GastoController {
         return "gastos";
     }
 
-    //Garante o resgate físico do ID da propriedade para não gerar registros "Sem vínculo"
+    // Processamento do salvamento de contas passando pela validacao de usuario
     @PostMapping("/salvar")
-    public String salvarGasto(@ModelAttribute Gasto gasto) {
-        //Vinculo a despesa à fazenda correta antes de validar
+    public String salvarGasto(@ModelAttribute Gasto gasto, HttpSession session) {
+        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) return "redirect:/login";
+
         if (gasto.getPropriedade() != null && gasto.getPropriedade().getId() != null) {
             Propriedade prop = propriedadeRepository.findById(gasto.getPropriedade().getId()).orElse(null);
-            gasto.setPropriedade(prop);
+            if (prop != null && prop.getUsuario() != null && prop.getUsuario().getId().equals(usuarioLogado.getId())) {
+                gasto.setPropriedade(prop);
+            } else {
+                return "redirect:/gastos-view";
+            }
         }
 
-        //AJUSTE DE ARQUITETURA: Em vez de salvar direto no repository, passo a bola para o Service.
-        //Se o valor for negativo ou zero, a RegraNegocioException é lançada e o log é gravado.
+        // Meu servico cuida de negar valores negativos
         gastoService.registrarGasto(gasto);
-
         return "redirect:/gastos-view";
     }
 
-    // Carrega os dados da despesa na tela para edição
+    // Busco os dados de uma despesa garantindo o isolamento
     @GetMapping("/editar/{id}")
-    public String editarGasto(@PathVariable Long id, Model model) {
+    public String editarGasto(@PathVariable Long id, Model model, HttpSession session) {
+        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) return "redirect:/login";
+
         Gasto gasto = gastoRepository.findById(id).orElse(null);
-        if (gasto != null) {
-            List<Gasto> lista = gastoRepository.findAll();
-            double total = obterSomaGlobal(lista);
+        if (gasto != null && gasto.getPropriedade() != null && gasto.getPropriedade().getUsuario() != null && gasto.getPropriedade().getUsuario().getId().equals(usuarioLogado.getId())) {
+
+            List<Propriedade> minhasProp = new ArrayList<>();
+            for (Propriedade p : propriedadeRepository.findAll()) {
+                if (p.getUsuario() != null && p.getUsuario().getId().equals(usuarioLogado.getId())) minhasProp.add(p);
+            }
+
+            List<Gasto> meusGastos = new ArrayList<>();
+            double total = 0.0;
+            for (Gasto g : gastoRepository.findAll()) {
+                if (g.getPropriedade() != null && g.getPropriedade().getUsuario() != null && g.getPropriedade().getUsuario().getId().equals(usuarioLogado.getId())) {
+                    meusGastos.add(g);
+                    if (g.getValor() != null) total += g.getValor();
+                }
+            }
 
             model.addAttribute("novoGasto", gasto);
-            model.addAttribute("gastos", lista);
-            model.addAttribute("propriedades", propriedadeRepository.findAll());
+            model.addAttribute("gastos", meusGastos);
+            model.addAttribute("propriedades", minhasProp);
             model.addAttribute("propSelecionada", null);
             model.addAttribute("totalGasto", total);
             return "gastos";
@@ -105,23 +133,16 @@ public class GastoController {
         return "redirect:/gastos-view";
     }
 
-    // Deleta a despesa pelo ID
+    // Exclusao bloqueada para terceiros
     @GetMapping("/excluir/{id}")
-    public String excluirGasto(@PathVariable Long id) {
-        gastoRepository.deleteById(id);
-        return "redirect:/gastos-view";
-    }
+    public String excluirGasto(@PathVariable Long id, HttpSession session) {
+        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+        if (usuarioLogado == null) return "redirect:/login";
 
-    //Método auxiliar para somar todos os gastos e mostrar no card da tela
-    private double obterSomaGlobal(List<Gasto> lista) {
-        double total = 0.0;
-        if (lista != null) {
-            for (Gasto g : lista) {
-                if (g != null && g.getValor() != null) {
-                    total += g.getValor();
-                }
-            }
+        Gasto gasto = gastoRepository.findById(id).orElse(null);
+        if (gasto != null && gasto.getPropriedade() != null && gasto.getPropriedade().getUsuario() != null && gasto.getPropriedade().getUsuario().getId().equals(usuarioLogado.getId())) {
+            gastoRepository.deleteById(id);
         }
-        return total;
+        return "redirect:/gastos-view";
     }
 }
