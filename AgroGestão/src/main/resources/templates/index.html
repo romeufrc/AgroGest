@@ -39,7 +39,7 @@
                 <span class="text-success fw-bold fs-5" th:text="${propSelecionada.nome}">Fazenda Exemplo</span>
             </div>
             <div th:if="${propSelecionada == null}">
-                <span class="text-secondary fw-bold fs-5">Consolidação Geral</span>
+                <span class="text-secondary fw-bold fs-5">Todas as Propriedades</span>
             </div>
         </div>
 
@@ -66,12 +66,12 @@
         <div class="card-body p-2">
             <form th:action="@{/}" method="get" class="row g-3 align-items-center">
                 <div class="col-md-4">
-                    <h5 class="mb-0 fw-bold text-success"><i class="bi bi-sliders"></i> Contexto do Painel</h5>
+                    <h5 class="mb-0 fw-bold text-success"><i class="bi bi-sliders"></i> Painel de Propriedades</h5>
                     <span class="text-muted small">Filtre os gráficos e previsões por propriedade</span>
                 </div>
                 <div class="col-md-6">
                     <select name="propriedadeId" class="form-select border-success-subtle shadow-sm" required>
-                        <option value="">-- Exibir Consolidação Global (Todas) --</option>
+                        <option value="">-- Todas As Propriedades --</option>
                         <option th:each="p : ${propriedades}"
                                 th:value="${p.id}"
                                 th:text="${p.nome}"
@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    <h4 class="fs-6 fw-semibold text-secondary text-uppercase tracking-wider mb-3">Módulos de Acesso</h4>
+    <h4 class="fs-6 fw-semibold text-secondary text-uppercase tracking-wider mb-3">Funcionalidades</h4>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
         <div class="col">
             <div onclick="location.href='/atividades-view'" class="card action-card h-100 border-light shadow-sm p-3 bg-white">
@@ -138,14 +138,14 @@
     </div>
 
     <div class="card border-0 shadow-sm p-4 bg-white mb-4 rounded-3">
-        <h4 class="fs-6 fw-bold text-dark text-uppercase tracking-wider mb-3"><i class="bi bi-bell-fill text-danger me-1"></i> Central de Alertas Operacionais</h4>
+        <h4 class="fs-6 fw-bold text-dark text-uppercase tracking-wider mb-3"><i class="bi bi-bell-fill text-danger me-1"></i> Central de Alertas </h4>
         <div class="row g-3">
             <div class="col-12" th:if="${!alertaOrcamento && !alertaSafras && !alertaColheita && !alertaEstoque && !alertaVazio}">
                 <div class="p-3 bg-light text-secondary rounded-3 d-flex align-items-center alert-card">
                     <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
                     <div>
                         <span class="fw-bold d-block text-dark">Diagnóstico Comercial Estável</span>
-                        <span class="small text-muted">A auditoria confirmou conformidade total: fluxo de caixa estável e insumos balanceados.</span>
+                        <span class="small text-muted"Fluxo de caixa estável e insumos balanceados.</span>
                     </div>
                 </div>
             </div>
@@ -165,7 +165,7 @@
                     <i class="bi bi-box-seam-fill fs-4 me-3 text-warning"></i>
                     <div class="w-100">
                         <span class="fw-bold d-block text-dark">Controle de Estoque: Margem de Segurança Atingida!</span>
-                        <span class="small text-dark d-block">O controle identificou produtos com saldo abaixo do limite definido definido para esta propriedade.</span>
+                        <span class="small text-dark d-block">O Sistema identificou produtos com saldo abaixo do limite definido para esta propriedade.</span>
                         <ul class="alert-details text-dark opacity-90" style="margin-bottom: 0;">
                             <li>Itens em Alerta Crítico: <strong class="text-danger" th:text="${produtosFaltaNome}">Nenhum listado</strong></li>
                         </ul>
@@ -177,8 +177,8 @@
                 <div class="p-3 rounded-3 d-flex align-items-center alert-card border-start border-4" style="background-color: rgba(253, 126, 20, 0.1); color: #fd7e14; border-color: #fd7e14 !important;">
                     <i class="bi bi-hourglass-split fs-4 me-3" style="color: #fd7e14;"></i>
                     <div>
-                        <span class="fw-bold d-block text-dark">Manejo Agrícola: Janela de Colheita Identificada!</span>
-                        <span class="small text-dark">A safra <strong th:text="${safraUrgenteNome}">Milho</strong> atingiu o status de maturação. Mobilize o maquinário.</span>
+                        <span class="fw-bold d-block text-dark">Manejo Agrícola: Prazo de Colheita Identificada!</span>
+                        <span class="small text-dark">A safra <strong th:text="${safraUrgenteNome}">Milho</strong> atingiu o status de maturação. Realize a Colheita.</span>
                     </div>
                 </div>
             </div>
@@ -210,7 +210,7 @@
     </div>
 
     <div class="card border-0 shadow-sm p-4 bg-white mb-4 rounded-3">
-        <h4 class="fs-6 fw-bold text-dark text-uppercase tracking-wider mb-3"><i class="bi bi-bar-chart-line-fill text-primary"></i> Análise Temporal Balanço de Despesas</h4>
+        <h4 class="fs-6 fw-bold text-dark text-uppercase tracking-wider mb-3"><i class="bi bi-bar-chart-line-fill text-primary"></i> Balanço de Despesas</h4>
         <div style="height: 250px; position: relative;">
             <canvas id="graficoCustosAgro"></canvas>
         </div>

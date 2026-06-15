@@ -37,7 +37,7 @@ public class LoginController {
                              HttpSession session,
                              Model model) {
 
-        // SEGURANÇA: Remove espaços em branco que o teclado pode colocar sem querer
+        //Remove espaços em branco que o teclado pode colocar sem querer
         String telefoneLimpo = (telefone != null) ? telefone.trim() : "";
         String senhaLimpa = (senha != null) ? senha.trim() : "";
 
@@ -50,7 +50,7 @@ public class LoginController {
         // Valida se o usuario existe e se a senha confere (também usando trim)
         if (usuario != null && usuario.getSenha() != null && usuario.getSenha().trim().equals(senhaLimpa)) {
 
-            // 🔥 AJUSTE DE OURO: Salva o ID explicitamente para blindar o estado da sessão
+            //Salva o ID explicitamente para blindar o estado da sessão
             session.setAttribute("usuarioId", usuario.getId());
             session.setAttribute("usuarioLogado", usuario);
 

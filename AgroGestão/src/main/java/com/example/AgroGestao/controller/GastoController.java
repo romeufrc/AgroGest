@@ -4,6 +4,7 @@ import com.example.AgroGestao.model.Gasto;
 import com.example.AgroGestao.model.Propriedade;
 import com.example.AgroGestao.repository.GastoRepository;
 import com.example.AgroGestao.repository.PropriedadeRepository;
+import com.example.AgroGestao.service.GastoService; // Importei a minha classe Service do módulo financeiro
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +23,10 @@ public class GastoController {
     @Autowired
     private PropriedadeRepository propriedadeRepository;
 
+    @Autowired
+    private GastoService gastoService; // Injetei o Service para garantir que nenhum gasto zerado passe
+
+    //Método para listar os gastos na tela e calcular o total
     @GetMapping
     public String exibirGastos(@RequestParam(name = "propriedadeId", required = false) Long propriedadeId, Model model) {
 
@@ -66,17 +71,23 @@ public class GastoController {
         return "gastos";
     }
 
-    // 🟢 CORREÇÃO: Garante o resgate físico do ID da propriedade para não gerar registros "Sem vínculo"
+    //Garante o resgate físico do ID da propriedade para não gerar registros "Sem vínculo"
     @PostMapping("/salvar")
     public String salvarGasto(@ModelAttribute Gasto gasto) {
+        //Vinculo a despesa à fazenda correta antes de validar
         if (gasto.getPropriedade() != null && gasto.getPropriedade().getId() != null) {
             Propriedade prop = propriedadeRepository.findById(gasto.getPropriedade().getId()).orElse(null);
             gasto.setPropriedade(prop);
         }
-        gastoRepository.save(gasto);
+
+        //AJUSTE DE ARQUITETURA: Em vez de salvar direto no repository, passo a bola para o Service.
+        //Se o valor for negativo ou zero, a RegraNegocioException é lançada e o log é gravado.
+        gastoService.registrarGasto(gasto);
+
         return "redirect:/gastos-view";
     }
 
+    // Carrega os dados da despesa na tela para edição
     @GetMapping("/editar/{id}")
     public String editarGasto(@PathVariable Long id, Model model) {
         Gasto gasto = gastoRepository.findById(id).orElse(null);
@@ -94,12 +105,14 @@ public class GastoController {
         return "redirect:/gastos-view";
     }
 
+    // Deleta a despesa pelo ID
     @GetMapping("/excluir/{id}")
     public String excluirGasto(@PathVariable Long id) {
         gastoRepository.deleteById(id);
         return "redirect:/gastos-view";
     }
 
+    //Método auxiliar para somar todos os gastos e mostrar no card da tela
     private double obterSomaGlobal(List<Gasto> lista) {
         double total = 0.0;
         if (lista != null) {

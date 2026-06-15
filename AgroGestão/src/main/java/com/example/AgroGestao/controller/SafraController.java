@@ -1,13 +1,11 @@
 package com.example.AgroGestao.controller;
-
-// AQUI ESTÃO OS IMPORTS QUE REOLVEM O SEU ERRO DE BUILD:
-// Eu importo explicitamente as entidades do pacote de modelos para o Java reconhecer
 import com.example.AgroGestao.model.Safra;
-import com.example.AgroGestao.model.Propriedade; // <-- Esse aqui mata o erro!
+import com.example.AgroGestao.model.Propriedade;
 
 // Importo os repositórios para comunicação com o MySQL
 import com.example.AgroGestao.repository.SafraRepository;
 import com.example.AgroGestao.repository.PropriedadeRepository;
+import com.example.AgroGestao.service.SafraService; // 🎯 Importei o meu novo Service aqui
 
 // Importações padrão do Spring Boot e coleções
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +26,10 @@ public class SafraController {
     @Autowired
     private PropriedadeRepository propriedadeRepository;
 
-    // Meu método de listagem com filtragem segura por fazenda
+    @Autowired
+    private SafraService safraService; //Injetei o Service para validar regras e disparar logs
+
+    //Método de listagem com filtragem por fazenda
     @GetMapping
     public String exibirSafras(@RequestParam(name = "propriedadeId", required = false) Long propriedadeId, Model model) {
         model.addAttribute("propriedades", propriedadeRepository.findAll());
@@ -60,14 +61,16 @@ public class SafraController {
         return "safra";
     }
 
-    // Método que faz o INSERT ou UPDATE no banco de dados do MySQL
+    //Método que faz o INSERT ou UPDATE no banco de dados do MySQL
     @PostMapping("/salvar")
     public String salvarSafra(@ModelAttribute Safra safra) {
-        safraRepository.save(safra);
+        //Passei a responsabilidade para o Service.
+        //Se a estimativa de sacas ou o preço forem negativos, ele bloqueia e grava no log!
+        safraService.salvarSafra(safra);
         return "redirect:/safras-view";
     }
 
-    // Recupera a safra selecionada para carregar no formulário premium
+    //Recupera a safra selecionada para carregar no formulário
     @GetMapping("/editar/{id}")
     public String editarSafra(@PathVariable Long id, Model model) {
         Safra safra = safraRepository.findById(id).orElse(null);
@@ -80,10 +83,11 @@ public class SafraController {
         return "redirect:/safras-view";
     }
 
-    // Exclui o registro da safra do banco pelo ID
+    //Exclui o registro da safra do banco pelo ID
     @GetMapping("/excluir/{id}")
     public String excluirSafra(@PathVariable Long id) {
-        safraRepository.deleteById(id);
+        //A exclusão agora também passa pelo Service para deixar rastro.
+        safraService.deletarSafra(id);
         return "redirect:/safras-view";
     }
 }

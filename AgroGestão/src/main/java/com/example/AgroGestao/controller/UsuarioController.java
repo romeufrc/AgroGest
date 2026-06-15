@@ -23,7 +23,7 @@ public class UsuarioController {
     @GetMapping("/perfil")
     public String exibirPerfil(Model model, HttpSession session) {
 
-        // 🔥 BUSCA PELO ID: Garante consistência e impede perdas de contexto do Hibernate
+        //BUSCA PELO ID: Garante consistência e impede perdas de contexto do Hibernate
         Long usuarioId = (Long) session.getAttribute("usuarioId");
 
         // SEGURANCA: Se a sessao caiu ou nao tiver ninguem logado, manda para o login

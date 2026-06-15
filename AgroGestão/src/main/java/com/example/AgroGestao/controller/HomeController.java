@@ -17,6 +17,7 @@ import java.util.Map;
 @Controller
 public class HomeController {
 
+    //Injeção de todos os meus repositórios para puxar os dados do dashboard
     @Autowired
     private PropriedadeRepository propriedadeRepository;
     @Autowired
@@ -28,11 +29,13 @@ public class HomeController {
     @Autowired
     private SafraRepository safraRepository;
 
+    //Meu método principal que monta a tela inicial (Dashboard) com todos os KPIs
     @GetMapping("/")
     public String exibirDashboard(@RequestParam(name = "propriedadeId", required = false) Long id, Model model) {
 
         model.addAttribute("propriedades", propriedadeRepository.findAll());
 
+        //Variáveis que vão armazenar os totais para os "Cards" da tela
         long qtdPropriedades = propriedadeRepository.count();
         long qtdAtividades = 0;
         long qtdInsumos = 0;
@@ -41,6 +44,7 @@ public class HomeController {
         List<Atividade> atividadesRecentes = new ArrayList<>();
         List<Safra> safrasFiltradas = new ArrayList<>();
 
+        //Gatilhos de regras de negócio (Alertas na tela principal)
         boolean alertaOrcamentoEstourado = false;
         boolean alertaSemSafrasAtivas = false;
         boolean alertaColheitaProxima = false;
@@ -51,16 +55,18 @@ public class HomeController {
         String itensEstoqueBaixo = "";
         double faturamentoProjetado = 0.0;
 
-        // CENÁRIO A: Filtro por Fazenda Ativo
+        // ====================================================================
+        // CENÁRIO A: O usuário selecionou uma Fazenda específica no filtro
+        // ====================================================================
         if (id != null) {
             Propriedade p = propriedadeRepository.findById(id).orElse(null);
             if (p != null) {
                 model.addAttribute("propSelecionada", p);
 
-                // Se o usuário definiu uma margem na propriedade, usamos. Se não, o padrão é 10.
+                //Regra dinâmica: Pego o limite de estoque que o usuário cadastrou para esta fazenda. Se for vazio, uso 10 por padrão.
                 int margemSegurancaEstoque = (p.getLimiteEstoqueBaixo() != null) ? p.getLimiteEstoqueBaixo() : 10;
 
-                // Varredura de Atividades
+                //1. Varredura de Atividades: Conto apenas as atividades desta propriedade
                 List<Atividade> todasAtiv = atividadeRepository.findAll();
                 if (todasAtiv != null) {
                     for (Atividade a : todasAtiv) {
@@ -71,7 +77,7 @@ public class HomeController {
                     }
                 }
 
-                // Varredura Financeira
+                // 2. Varredura Financeira: Somatório de gastos apenas desta fazenda
                 List<Gasto> todosGastos = gastoRepository.findAll();
                 if (todosGastos != null) {
                     for (Gasto g : todosGastos) {
@@ -81,14 +87,14 @@ public class HomeController {
                     }
                 }
 
-                // Varredura Logística com a Nova Margem Dinâmica
+                // 3. Varredura Logística: Avalio o estoque cruzando com a margem dinâmica do usuário
                 List<Insumos> todosInsumos = insumosRepository.findAll();
                 if (todosInsumos != null) {
                     for (Insumos ins : todosInsumos) {
                         if (ins != null && ins.getPropriedade() != null && id.equals(ins.getPropriedade().getId())) {
                             qtdInsumos++;
 
-                            // Validação reativa contra a margem definida pelo usuário
+                            // Disparo de alerta reativo se o estoque estiver menor que o limite da fazenda
                             if (ins.getQuantidade() != null && ins.getQuantidade() < margemSegurancaEstoque) {
                                 alertaEstoqueBaixo = true;
                                 if (itensEstoqueBaixo.isEmpty()) {
@@ -101,7 +107,7 @@ public class HomeController {
                     }
                 }
 
-                // Varredura de Safras e Cálculo de Faturamento Real
+                // 4. Varredura de Safras e Cálculo de Faturamento e Lucro Projetado
                 List<Safra> todasSafras = safraRepository.findAll();
                 if (todasSafras != null) {
                     for (Safra s : todasSafras) {
@@ -109,10 +115,12 @@ public class HomeController {
                             qtdSafras++;
                             safrasFiltradas.add(s);
 
+                            // Calculo o faturamento projetado (Estimativa de Produção x Preço da Saca)
                             if (s.getProducaoEstimadaSacas() != null && s.getPrecoSacaEsperado() != null) {
                                 faturamentoProjetado += (s.getProducaoEstimadaSacas() * s.getPrecoSacaEsperado());
                             }
 
+                            // Alerta visual de que a colheita está chegando
                             if (s.getStatus() != null && (s.getStatus().equalsIgnoreCase("EM MATURAÇÃO") || s.getStatus().equalsIgnoreCase("MATURAÇÃO"))) {
                                 alertaColheitaProxima = true;
                                 nomeSafraUrgente = s.getNome() + " [" + s.getCultura() + "]";
@@ -121,7 +129,7 @@ public class HomeController {
                     }
                 }
 
-                // Validação Financeira
+                // Validação Financeira: Verifico se o gasto atual ultrapassou o teto estipulado para a fazenda
                 if (p.getLimiteGasto() != null && totalGastoCalculado > p.getLimiteGasto()) {
                     alertaOrcamentoEstourado = true;
                 }
@@ -130,7 +138,9 @@ public class HomeController {
                 alertaSemInsumos = (qtdInsumos == 0);
             }
         } else {
-            // CENÁRIO B: Carregamento Geral Consolidado (Global)
+            // ====================================================================
+            // CENÁRIO B: Visão Global (Nenhum filtro de fazenda selecionado)
+            // ====================================================================
             qtdAtividades = atividadeRepository.count();
             qtdInsumos = insumosRepository.count();
             qtdSafras = safraRepository.count();
@@ -138,7 +148,7 @@ public class HomeController {
             atividadesRecentes = atividadeRepository.findAll();
             safrasFiltradas = safraRepository.findAll();
 
-            // No escopo global, o sistema avalia cada item contra o limite da sua respectiva fazenda
+            // No escopo global, o meu sistema avalia cada produto individualmente contra o limite da sua respectiva fazenda
             List<Insumos> todosInsumosGlobais = insumosRepository.findAll();
             if (todosInsumosGlobais != null) {
                 for (Insumos ins : todosInsumosGlobais) {
@@ -160,7 +170,7 @@ public class HomeController {
                 }
             }
 
-            // Somatório de faturamento global real
+            // Somatório de faturamento global projetado somando todas as fazendas
             List<Safra> todasSafrasGlobais = safraRepository.findAll();
             if (todasSafrasGlobais != null) {
                 for (Safra s : todasSafrasGlobais) {
@@ -171,7 +181,9 @@ public class HomeController {
             }
         }
 
-        // Histórico de Logs Reativos para a View (Módulo 3)
+        // ====================================================================
+        // Geração da tabela de Logs Visuais da tela inicial
+        // ====================================================================
         List<Map<String, Object>> logsSimulados = new ArrayList<>();
         Map<String, Object> log1 = new HashMap<>();
         log1.put("dataEvento", LocalDateTime.now().minusHours(1));
@@ -187,7 +199,9 @@ public class HomeController {
             logsSimulados.add(log2);
         }
 
-        // Model Bindings
+        // ====================================================================
+        // Envio de todas as variáveis processadas para renderizar no front-end (Thymeleaf)
+        // ====================================================================
         model.addAttribute("qtdPropriedades", qtdPropriedades);
         model.addAttribute("qtdAtividades", qtdAtividades);
         model.addAttribute("qtdInsumos", qtdInsumos);
@@ -203,12 +217,15 @@ public class HomeController {
         model.addAttribute("safraUrgenteNome", nomeSafraUrgente);
         model.addAttribute("produtosFaltaNome", itensEstoqueBaixo);
         model.addAttribute("faturamentoProjetado", faturamentoProjetado);
+
+        // Indicador de Lucro Líquido: Faturamento Projetado menos os Gastos Reais
         model.addAttribute("lucroLiquidoProjetado", (faturamentoProjetado - totalGastoCalculado));
         model.addAttribute("logsAuditoria", logsSimulados);
 
         return "index";
     }
 
+    // Método auxiliar privado para varrer o banco e somar todas as despesas da conta global
     private double obterTotalGastoGlobal() {
         double total = 0.0;
         List<Gasto> lista = gastoRepository.findAll();

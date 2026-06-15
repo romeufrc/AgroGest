@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+    <Properties>
+        <Property name="CAMINHO_LOGS">logs/agrogestao</Property>
+        <Property name="FORMATO_LOG">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="${FORMATO_LOG}"/>
+        </Console>
+
+        <RollingFile name="ArquivoRotativoAppender"
+                     fileName="${CAMINHO_LOGS}/sistema.log"
+                     filePattern="${CAMINHO_LOGS}/arquivados/sistema-%d{yyyy-MM-dd}-%i.log.gz">
+
+            <PatternLayout pattern="${FORMATO_LOG}"/>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="10 MB"/>
+            </Policies>
+
+            <DefaultRolloverStrategy max="7"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.springframework" level="info" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+
+        <Logger name="com.example.AgroGestao" level="debug" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="ArquivoRotativoAppender"/>
+        </Logger>
+
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="ArquivoRotativoAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

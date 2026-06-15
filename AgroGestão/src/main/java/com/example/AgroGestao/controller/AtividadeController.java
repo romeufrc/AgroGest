@@ -4,6 +4,7 @@ import com.example.AgroGestao.model.Atividade;
 import com.example.AgroGestao.model.Propriedade;
 import com.example.AgroGestao.repository.AtividadeRepository;
 import com.example.AgroGestao.repository.PropriedadeRepository;
+import com.example.AgroGestao.service.AtividadeService; // Importei o meu novo Service aqui
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +23,10 @@ public class AtividadeController {
     @Autowired
     private PropriedadeRepository propriedadeRepository;
 
+    @Autowired
+    private AtividadeService atividadeService; // Injetei a minha classe Service para usar a regra de estoque
+
+    //Método para listar as atividades na tela com filtro
     @GetMapping
     public String exibirAtividades(@RequestParam(name = "propriedadeId", required = false) Long propriedadeId, Model model) {
 
@@ -58,20 +63,28 @@ public class AtividadeController {
         return "atividades";
     }
 
+    // Método que o formulário chama ao clicar em salvar
     @PostMapping("/salvar")
     public String salvarAtividade(@ModelAttribute Atividade atividade) {
+        //Vinculo a atividade com a fazenda certa antes de salvar
         if (atividade.getPropriedade() != null && atividade.getPropriedade().getId() != null) {
             Propriedade prop = propriedadeRepository.findById(atividade.getPropriedade().getId()).orElse(null);
             atividade.setPropriedade(prop);
         }
-        // Define o tipo com base no nome ou descrição se o seu banco exigir a coluna preenchida
+
+        //Se o tipo vier em branco, coloco "Campo" como padrão
         if (atividade.getTipo() == null || atividade.getTipo().isEmpty()) {
             atividade.setTipo("Campo");
         }
-        atividadeRepository.save(atividade);
+
+        //Mudei aqui para chamar o Service em vez do repository direto.
+        //Agora, o salvamento passa pela validação de estoque e gera os logs automáticos.
+        atividadeService.salvarEAtualizarEstoque(atividade);
+
         return "redirect:/atividades-view";
     }
 
+    //Puxa a atividade pelo ID para carregar no botão de editar
     @GetMapping("/editar/{id}")
     public String editarAtividade(@PathVariable Long id, Model model) {
         Atividade atividade = atividadeRepository.findById(id).orElse(null);
@@ -85,12 +98,14 @@ public class AtividadeController {
         return "redirect:/atividades-view";
     }
 
+    //Deleta a atividade pelo ID do banco
     @GetMapping("/excluir/{id}")
     public String excluirAtividade(@PathVariable Long id) {
         atividadeRepository.deleteById(id);
         return "redirect:/atividades-view";
     }
 
+    //Funçãozinha auxiliar para pegar o ID da fazenda sem dar erro de nulo
     private Long gethId(Propriedade p) {
         return p != null ? p.getId() : null;
     }
