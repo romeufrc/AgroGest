@@ -1,10 +1,12 @@
 package com.example.AgroGestao.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -41,21 +43,35 @@ public class ExceptionController {
     /**
      * Trata exceções relacionadas às regras de negócio da aplicação.
      *
+     * CORREÇÃO: antes este handler sempre retornava a view "atividades",
+     * mesmo quando a exceção era lançada a partir de Gasto, Insumo ou
+     * Safra (que usam o mesmo GastoService/InsumoService/SafraService
+     * para bloquear valores inválidos). Isso fazia a página de atividades
+     * ser renderizada sem os atributos de modelo que ela espera, quebrando
+     * o template. Agora o handler redireciona de volta para a página de
+     * onde a requisição partiu, preservando o fluxo de quem disparou o erro.
+     *
      * @param ex exceção capturada
-     * @param model objeto utilizado para enviar dados à view
-     * @return página de atividades com a mensagem de erro
+     * @param request usado para identificar a página de origem da requisição
+     * @param redirectAttributes envia a mensagem de erro através do redirect
+     * @return redirecionamento para a página de origem, com a mensagem de erro
      */
     @ExceptionHandler(RegraNegocioException.class)
-    public String tratarErroDeNegocio(RegraNegocioException ex, Model model) {
+    public String tratarErroDeNegocio(RegraNegocioException ex,
+                                      HttpServletRequest request,
+                                      RedirectAttributes redirectAttributes) {
 
         // Registra o aviso no arquivo de log
         logger.warn("Aviso de regra de negócio interceptado: {}", ex.getMessage());
 
-        // Disponibiliza a mensagem para a página
-        model.addAttribute("erro", ex.getMessage());
+        // Disponibiliza a mensagem de erro para a próxima requisição (pós-redirect)
+        redirectAttributes.addFlashAttribute("erro", ex.getMessage());
 
-        // Retorna para a tela de atividades
-        return "atividades";
+        // Identifica a página de onde a requisição partiu (ex: /gastos-view, /insumos-view)
+        String referer = request.getHeader("Referer");
+
+        // Volta para a página de origem; se não for possível identificá-la, vai para a home
+        return "redirect:" + (referer != null && !referer.isEmpty() ? referer : "/");
     }
 
     /**
