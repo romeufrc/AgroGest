@@ -34,9 +34,16 @@ public class InsumoService {
             throw new RegraNegocioException("A quantidade em estoque não pode ser menor que zero.");
         }
 
-        // Regra 3: Se o estoque estiver acabando, emito um alerta no log (Apenas aviso, não trava o sistema)
-        if (insumo.getQuantidade() != null && insumo.getQuantidade() <= 10) {
-            logger.warn("Atenção: O estoque de '{}' está crítico ({} unidades).", insumo.getNome(), insumo.getQuantidade());
+        // Regra 3: Se o estoque estiver abaixo do limite configurado para a propriedade, emito um
+        // alerta no log (Apenas aviso, não trava o sistema). Usa o mesmo limite configurável já
+        // aplicado no restante do sistema (Dashboard), em vez de um valor fixo de 10 unidades.
+        int limiteEstoqueBaixo = (insumo.getPropriedade() != null && insumo.getPropriedade().getLimiteEstoqueBaixo() != null)
+                ? insumo.getPropriedade().getLimiteEstoqueBaixo()
+                : 10;
+
+        if (insumo.getQuantidade() != null && insumo.getQuantidade() <= limiteEstoqueBaixo) {
+            logger.warn("Atenção: O estoque de '{}' está crítico ({} unidades, limite configurado: {}).",
+                    insumo.getNome(), insumo.getQuantidade(), limiteEstoqueBaixo);
         }
 
         Insumos insumoSalvo = insumoRepository.save(insumo);

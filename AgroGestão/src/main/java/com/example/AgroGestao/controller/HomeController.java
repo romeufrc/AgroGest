@@ -40,7 +40,7 @@ public class HomeController {
     @Autowired
     private SafraRepository safraRepository;
 
-    // Meu metodo principal que constroi a tela inicial. Ele recebe o id da propriedade para filtro e a sessao para seguranca.
+    //Metodo principal que constroi a tela inicial. Ele recebe o id da propriedade para filtro e a sessao para seguranca.
 
     // Mapeia a rota principal do sistema
     @GetMapping("/")
@@ -391,6 +391,10 @@ public class HomeController {
             // Busca todos os gastos cadastrados
             List<Gasto> listaGastos = gastoRepository.findAll();
 
+            // Mapa auxiliar para acumular o gasto de cada propriedade individualmente,
+            // necessário para verificar o orçamento por propriedade (e não apenas o total geral)
+            Map<Long, Double> gastoPorPropriedade = new HashMap<>();
+
             // Percorre os gastos para somar apenas os pertencentes ao usuário logado
             for (Gasto g : listaGastos) {
 
@@ -402,8 +406,30 @@ public class HomeController {
 
                     // Soma o valor do gasto ao total acumulado
                     totalGastoCalculado += g.getValor();
+
+                    // Acumula o valor também por propriedade, para checar o orçamento individual
+                    Long idPropriedadeGasto = g.getPropriedade().getId();
+                    gastoPorPropriedade.merge(idPropriedadeGasto, g.getValor(), Double::sum);
                 }
             }
+
+            // CORREÇÃO: antes este alerta só era calculado quando uma propriedade
+            // específica estava selecionada. Agora verifica, na visão consolidada,
+            // se alguma propriedade do usuário ultrapassou o próprio limite de gasto.
+            for (Propriedade prop : minhasPropriedades) {
+                Double gastoDaPropriedade = gastoPorPropriedade.get(prop.getId());
+                if (prop.getLimiteGasto() != null
+                        && gastoDaPropriedade != null
+                        && gastoDaPropriedade > prop.getLimiteGasto()) {
+                    alertaOrcamentoEstourado = true;
+                }
+            }
+
+            // CORREÇÃO: antes estes alertas só eram definidos quando uma propriedade
+            // específica estava selecionada, então a Dashboard inicial (sem filtro)
+            // nunca avisava quando o usuário não tinha safras ou insumos cadastrados.
+            alertaSemSafrasAtivas = (qtdSafras == 0);
+            alertaSemInsumos = (qtdInsumos == 0);
         }
 
         // Criação da lista que armazenará os logs exibidos no painel de auditoria

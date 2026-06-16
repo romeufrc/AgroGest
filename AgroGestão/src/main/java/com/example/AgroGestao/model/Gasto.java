@@ -47,5 +47,5 @@ public class Gasto {
     public void setDataGasto(LocalDate dataGasto) { this.dataGasto = dataGasto; }
 
     public Propriedade getPropriedade() { return propriedade; }
-    public void setPropriedade(Propriedade propiedad) { this.propriedade = propiedad; }
+    public void setPropriedade(Propriedade propriedade) { this.propriedade = propriedade; }
 }

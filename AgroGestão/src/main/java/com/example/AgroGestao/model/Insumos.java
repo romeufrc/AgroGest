@@ -40,8 +40,6 @@ public class Insumos {
     public void setTipo(String tipo) { this.tipo = tipo; }
 
     public Integer getQuantidade() { return quantidade; }
-    public void setQuantity(Integer quantidade) { this.quantidade = quantidade; }
-    // Deixei o setter clássico mapeado o form use setQuantidade
     public void setQuantidade(Integer quantidade) { this.quantidade = quantidade; }
 
     public Propriedade getPropriedade() { return propriedade; }

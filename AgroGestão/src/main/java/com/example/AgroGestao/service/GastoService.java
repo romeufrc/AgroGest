@@ -28,7 +28,7 @@ public class GastoService {
             throw new RegraNegocioException("O valor do gasto financeiro deve ser maior que zero.");
         }
 
-        Gasto gastoSalvo = gastoRepository.save(gasto); // 🟢 Corrigido para o singular
+        Gasto gastoSalvo = gastoRepository.save(gasto);
         logger.info("Despesa '{}' no valor de R$ {} registrada com sucesso.", gastoSalvo.getDescricao(), gastoSalvo.getValor());
 
         return gastoSalvo;

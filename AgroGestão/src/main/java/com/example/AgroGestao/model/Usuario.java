@@ -3,6 +3,7 @@ package com.example.AgroGestao.model;
 import jakarta.persistence.*;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 public class Usuario {
@@ -29,6 +30,7 @@ public class Usuario {
         this.telefone = telefone;
         this.senha = senha;
     }
+
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
