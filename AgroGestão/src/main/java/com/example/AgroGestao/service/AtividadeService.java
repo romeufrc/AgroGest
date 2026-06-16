@@ -4,16 +4,17 @@ import com.example.AgroGestao.model.Atividade;
 import com.example.AgroGestao.model.Insumos;
 import com.example.AgroGestao.repository.AtividadeRepository;
 import com.example.AgroGestao.repository.InsumosRepository;
-import com.example.AgroGestao.exception.ExceptionController.RegraNegocioException;import org.apache.logging.log4j.LogManager;
+import com.example.AgroGestao.exception.ExceptionController.RegraNegocioException;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
-@Service
+@Service // Indica que esta classe é responsável pelas regras de negócio
 public class AtividadeService {
 
-    // Configurando o Log4j2 para substituir o System.out.println
+    // Logger utilizado para registrar informações e erros durante a execução
     private static final Logger logger = LogManager.getLogger(AtividadeService.class);
 
     @Autowired
@@ -22,63 +23,58 @@ public class AtividadeService {
     @Autowired
     private InsumosRepository insumoRepository;
 
-    // Método que salva a atividade e atualiza o estoque sozinho
-    public Atividade salvarEAtualizarEstoque(Atividade atividade) {
+    @Transactional // Garante que todas as operações sejam executadas em uma única transação
+    public Atividade salvarComBaixaEstoque(Atividade atividade, Long insumoId, Integer quantidadeUsada) {
 
-        // Log de informação: rastreia o início da operação
-        logger.info("Salvando atividade: '{}'", atividade.getNome());
+        // Inicia o registro da operação no log
+        logger.info("Iniciando processamento da atividade: '{}'", atividade.getNome());
 
-        // Se o tipo vier vazio, eu lanço erro e paro aqui
-        if (atividade.getTipo() == null) {
-            logger.warn("Erro: Tipo de atividade não foi informado.");
-            throw new RegraNegocioException("O tipo da atividade precisa ser informado.");
+        // Verifica se a descrição da atividade foi informada
+        if (atividade.getDescricao() == null || atividade.getDescricao().isEmpty()) {
+            throw new RegraNegocioException("A descrição ou tipo da atividade precisa ser informada.");
         }
 
-        String tipo = atividade.getTipo().toLowerCase();
+        // Só realiza a baixa no estoque caso o insumo e a quantidade tenham sido informados
+        if (insumoId != null && quantidadeUsada != null) {
 
-        // Regra: só mexe no estoque se for Plantio ou Adubação
-        if (tipo.contains("plantio") || tipo.contains("adubacao") || tipo.contains("adubação")) {
+            // Verifica se a quantidade utilizada é válida
+            if (quantidadeUsada <= 0) {
+                throw new RegraNegocioException("A quantidade utilizada deve ser maior que zero.");
+            }
 
-            // Log de depuração: avisa que começou a buscar os produtos no galpão
-            logger.debug("Manejo de plantio/adubação detectado. Verificando estoque...");
+            // Busca o insumo no banco pelo ID informado
+            Insumos insumo = insumoRepository.findById(insumoId)
+                    .orElseThrow(() -> new RegraNegocioException("Insumo selecionado não encontrado."));
 
-            List<Insumos> estoque = insumoRepository.findAll();
-            String descricao = (atividade.getDescricao() != null) ? atividade.getDescricao().toLowerCase() : "";
-            String nomeAtividade = (atividade.getNome() != null) ? atividade.getNome().toLowerCase() : "";
+            // Confere se existe quantidade suficiente em estoque
+            if (insumo.getQuantidade() != null && insumo.getQuantidade() >= quantidadeUsada) {
 
-            for (Insumos insumo : estoque) {
+                // Realiza a baixa do estoque
+                insumo.setQuantidade(insumo.getQuantidade() - quantidadeUsada);
 
-                // Se o nome do insumo estiver no texto da atividade, eu vinculo os dois
-                if (descricao.contains(insumo.getNome().toLowerCase()) || nomeAtividade.contains(insumo.getNome().toLowerCase())) {
+                // Salva a nova quantidade no banco
+                insumoRepository.save(insumo);
 
-                    int quantidadeUsada = 50; // Padrão de gasto do manejo
+                logger.info("Baixa dinâmica confirmada: {} unidades de '{}'", quantidadeUsada, insumo.getNome());
 
-                    logger.debug("Insumo encontrado: {}. Saldo atual: {} un.", insumo.getNome(), insumo.getQuantidade());
+            } else {
+                // Caso não haja estoque suficiente, gera uma exceção
+                logger.error("Saldo insuficiente. Requerido: {}, Disponível: {}", quantidadeUsada, insumo.getQuantidade());
 
-                    // Se tiver estoque suficiente, dá a baixa
-                    if (insumo.getQuantidade() != null && insumo.getQuantidade() >= quantidadeUsada) {
-
-                        insumo.setQuantidade(insumo.getQuantidade() - quantidadeUsada);
-                        insumoRepository.save(insumo); // UPDATE no banco
-
-                        // Log de sucesso: avisa quanta quantidade foi retirada do estoque
-                        logger.info("Baixa automática: 50 un. retiradas de '{}'.", insumo.getNome());
-                    } else {
-
-                        // Se NÃO tiver estoque, grava log de erro e dispara a nossa exceção na tela
-                        logger.error("Erro: Saldo insuficiente de '{}'. Operação cancelada.", insumo.getNome());
-                        throw new RegraNegocioException("Estoque insuficiente! Faltam produtos para esse manejo.");
-                    }
-
-                    break; // Sai do laço porque já tratou o produto certo
-                }
+                throw new RegraNegocioException(
+                        "Estoque insuficiente! O saldo atual é de apenas "
+                                + insumo.getQuantidade() + " unidades."
+                );
             }
         }
 
-        // Salva a atividade de campo no banco de dados e confirma o sucesso
-        Atividade atividadeSalva = atividadeRepository.save(atividade);
-        logger.info("Atividade '{}' salva com sucesso.", atividadeSalva.getNome());
+        // Salva a atividade no banco de dados
+        Atividade salva = atividadeRepository.save(atividade);
 
-        return atividadeSalva;
+        // Registra no log que a atividade foi salva com sucesso
+        logger.info("Atividade '{}' salva com sucesso.", salva.getNome());
+
+        // Retorna a atividade salva
+        return salva;
     }
 }

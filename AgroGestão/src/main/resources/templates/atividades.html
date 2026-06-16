@@ -73,7 +73,7 @@
             <form class="row g-3 align-items-center" method="get" th:action="@{/atividades-view}">
                 <div class="col-md-4">
                     <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-filter-square-fill text-success me-1"></i> Filtrar Atividades</h5>
-                    <span class="text-muted small">Isole os manejos por unidade produtiva</span>
+                    <span class="text-muted small">Filtre as Atividades por Propriedade</span>
                 </div>
                 <div class="col-md-6">
                     <select class="form-select border-secondary-subtle shadow-sm py-2" name="propriedadeId">
@@ -106,7 +106,7 @@
 
                     <div class="form-floating mb-3">
                         <input class="form-control text-sm" id="nomeAtv" placeholder="Nome do Manejo" required th:field="*{nome}" type="text">
-                        <label for="nomeAtv" class="text-secondary small">Nome do Manejo</label>
+                        <label for="nomeAtv" class="text-secondary small">Nome da Atividade</label>
                     </div>
 
                     <div class="form-floating mb-3">
@@ -119,11 +119,27 @@
                         <label for="dataAtv" class="text-secondary small">Data de Execução</label>
                     </div>
 
-                    <div class="form-floating mb-4">
+                    <div class="form-floating mb-3">
                         <select class="form-select text-sm" id="propAtv" required th:field="*{propriedade}">
                             <option th:each="prop : ${propriedades}" th:text="${prop.nome}" th:value="${prop.id}">Fazenda</option>
                         </select>
                         <label for="propAtv" class="text-secondary small">Propriedade Afetada</label>
+                    </div>
+
+                    <div class="form-floating mb-2">
+                        <select class="form-select text-sm border-warning" id="insumoAtv" name="insumoId">
+                            <option value="">Nenhum Insumo (Sem baixa)</option>
+                            <option th:each="ins : ${listaInsumos}"
+                                    th:value="${ins.id}"
+                                    th:text="${ins.nome} + ' (Saldo: ' + ${ins.quantidade} + ' un)'">
+                            </option>
+                        </select>
+                        <label for="insumoAtv" class="text-secondary small fw-bold text-warning">Vincular Insumo (Opcional)</label>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <input type="number" class="form-control text-sm border-warning" id="qtdInsumo" name="quantidadeUsada" min="1" placeholder="Quantidade Utilizada">
+                        <label for="qtdInsumo" class="text-secondary small fw-bold text-warning">Quantidade:</label>
                     </div>
 
                     <div class="d-flex gap-2">
